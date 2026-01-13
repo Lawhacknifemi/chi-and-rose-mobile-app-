@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "dart-code.dart-code",
+    "dart-code.flutter",
+    "blaugold.melos-code",
+    "djbkwon.flutter-dependency-docs",
+    "google.arb-editor",
+    "hverlin.mise-vscode",
+    "oven.bun-vscode",
+    "streetsidesoftware.code-spell-checker",
+    "dprint.dprint",
+    "vivaxy.vscode-conventional-commits"
+  ]
+}

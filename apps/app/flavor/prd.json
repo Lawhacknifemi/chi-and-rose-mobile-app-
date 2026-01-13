@@ -1,0 +1,7 @@
+{
+  "flavor": "prd",
+  "appName": "Template",
+  "appIdAndroid": "jp.co.yumemi.template",
+  "appIdIos": "jp.co.yumemi.template",
+  "appIdSuffix": ""
+}

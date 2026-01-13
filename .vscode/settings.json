@@ -1,0 +1,41 @@
+// GitHubのテンプレート機能使用してリポジトリを作った際に、このファイルのコメントは削除されます
+{
+  // NOTE: miseの自動構成で`.vscode/mise-tools`配下にシンボリックリンクを作成し、それをツールのパスとして利用する機能を有効にします
+  "mise.configureExtensionsUseSymLinks": true,
+  // NOTE: miseの自動構成では、以下の拡張に関するパスを絶対パスで設定するため無効化
+  "mise.configureExtensionsAutomaticallyIgnoreList": ["dart-code.flutter"],
+  "bun.runtime": "${workspaceFolder}/.vscode/mise-tools/bun",
+  "dart.flutterSdkPath": "~/.local/share/mise/installs/flutter/3.32.0-stable",
+  "dart.sdkPath": "~/.local/share/mise/installs/flutter/3.32.0-stable/bin/dart",
+  "dprint.path": "~/.local/share/mise/shims/dprint",
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.dart": "$(capture).g.dart, $(capture).freezed.dart",
+    "pubspec.yaml": "pubspec.lock, pubspec_overrides.yaml",
+    "package.json": "bun.lock"
+  },
+  // GitHubのテンプレート機能使用してリポジトリを作った際に、
+  // copilotの設定は無効化されるように上書きするワークフローが実行されます
+  "github.copilot.enable": {
+    "*": false,
+    "markdown": true,
+    "dart": true,
+    "json": true,
+    "yaml": true
+  },
+  "github.copilot.editor.enableCodeActions": true,
+  "github.copilot.editor.enableAutoCompletions": true,
+  "npm.packageManager": "bun",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "[json][jsonc][yaml][toml][markdown]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/invertase/melos/main/melos.yaml.schema.json": "melos.yaml"
+  },
+  "arb-editor.suppressedWarnings": [
+    // "@example": {} のようなメタデータがない場合の警告を無効化
+    "missing_metadata_for_key"
+  ]
+}

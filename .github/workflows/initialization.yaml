@@ -1,0 +1,117 @@
+name: Initialization
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  condition:
+    runs-on: ubuntu-24.04
+    outputs:
+      execute: ${{ steps.condition.outputs.execute }}
+    steps:
+      - id: condition
+        run: |
+          if [[ "${{ github.event.repository.name }}" != "flutter-mobile-project-template" ]]; then
+            echo "execute=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "execute=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  generate-matrix:
+    runs-on: ubuntu-24.04
+    needs: condition
+    if: needs.condition.outputs.execute == 'true'
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      # https://github.com/actions/checkout
+      - name: Fetch sources
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Generate Matrix Data
+        id: matrix
+        uses: ./.github/actions/generate-issue-matrix-at-initialization
+
+  create-issues:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+    needs:
+      - condition
+      - generate-matrix
+    if: needs.condition.outputs.execute == 'true'
+    timeout-minutes: 10
+    strategy:
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+      fail-fast: false # 一つのIssue作成が失敗しても他の処理を続行
+    steps:
+      # https://github.com/actions/checkout
+      - name: Fetch sources
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Create Issue from File
+        uses: peter-evans/create-issue-from-file@24452a72d85239eacf1468b0f1982a9f3fec4c94 # v5.0.0
+        with:
+          title: ${{ matrix.title }}
+          content-filepath: ${{ matrix.content-filepath }}
+          labels: ${{ matrix.labels }}
+
+  cleanup:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    needs:
+      - condition
+      - create-issues
+    if: needs.condition.outputs.execute == 'true'
+    timeout-minutes: 10
+    steps:
+      # https://github.com/actions/checkout
+      - name: Fetch sources
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Cleanup Copilot Settings
+        uses: ./.github/actions/cleanup-copilot-settings
+
+      - name: Cleanup Samples
+        uses: ./.github/actions/cleanup-samples
+
+      # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      # Important: Please list the necessary steps above this line.
+      # Reason: This step involves removing files from the project, which may lead to unexpected outcomes for your step.
+      # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      - name: Remove unnecessary files
+        uses: ./.github/actions/remove-unnecessary-files
+
+      - name: Fill project name
+        uses: ./.github/actions/fill-project-name
+
+      # generate labels
+      - name: Setup Application Runtime
+        uses: ./.github/actions/setup-application-runtime
+
+      - name: Commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Template cleanup"
+
+      # https://github.com/ad-m/github-push-action
+      - name: Push changes
+        uses: ad-m/github-push-action@d91a481090679876dfc4178fef17f286781251df # v0.8.0
+        with:
+          branch: main
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Workaround: https://github.com/actions/checkout/issues/692#issuecomment-1502203573
+      # Error: Can't find 'action.yml', 'action.yaml' or 'Dockerfile' under '/home/runner/work/$PROJECT_NAME/$PROJECT_NAME/.github/actions/cleanup-copilot-settings'.
+      #        Did you forget to run actions/checkout before running your local action?
+      # Reason: Executing Post Cleanup without checking out after `Push changes` step can lead to the error.
+      #         This occurs when cleaning up a modified remote branch that remains in the stale state from `Fetch sources` step.
+      - name: Check out latest state of original repository
+        # https://github.com/actions/checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7

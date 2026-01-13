@@ -1,0 +1,101 @@
+# Default labels
+- name: "bug"
+  color: "d73a4a"
+  description: "Something isn't working"
+
+- name: "documentation"
+  color: "0075ca"
+  description: "Improvements or additions to documentation"
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+
+- name: "enhancement"
+  color: "a2eeef"
+  description: "New feature or request"
+
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed"
+
+- name: "invalid"
+  color: "e4e669"
+  description: "This doesn't seem right"
+
+- name: "question"
+  color: "d876e3"
+  description: "Further information is requested"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "This will not be worked on"
+
+- name: "package_update"
+  color: "0e8a16"
+  description: "Packages that need to be updated"
+
+# <!-- This is an auto-generated label -->
+- name: "@apps/catalog"
+  color: d4f227
+  description: Catalog development
+
+- name: "@apps/app"
+  color: e261d6
+  description: Application development
+
+- name: "@samples/github_app"
+  color: 73d994
+  description: samples github_app package
+
+- name: "@packages/application"
+  color: 745f84
+  description: packages application package
+
+- name: "@packages/debug"
+  color: b2e934
+  description: packages debug package
+
+- name: "@packages/design_theme"
+  color: 734ca1
+  description: packages design_theme package
+
+- name: "@packages/design_ui"
+  color: 71c90b
+  description: packages design_ui package
+
+- name: "@packages/domain_logic"
+  color: 884b73
+  description: packages domain_logic package
+
+- name: "@packages/domain_model"
+  color: "839326"
+  description: packages domain_model package
+
+- name: "@packages/infrastructure"
+  color: 92ba54
+  description: packages infrastructure package
+
+- name: "@packages/shared"
+  color: c22c75
+  description: packages shared package
+
+- name: "@packages/util_logic"
+  color: 0db1e6
+  description: packages util_logic package
+
+- name: "@packages/util_ui"
+  color: 092d90
+  description: packages util_ui package
+
+- name: "@packages/utils/pagination"
+  color: 5d7dbc
+  description: packages utils pagination package
+
+- name: "@samples/webview"
+  color: c4de78
+  description: samples webview package

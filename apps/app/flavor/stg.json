@@ -1,0 +1,7 @@
+{
+  "flavor": "stg",
+  "appName": "stg-Template",
+  "appIdAndroid": "jp.co.yumemi.template",
+  "appIdIos": "jp.co.yumemi.template",
+  "appIdSuffix": ".stg"
+}

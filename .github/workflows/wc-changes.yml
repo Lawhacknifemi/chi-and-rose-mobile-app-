@@ -1,0 +1,99 @@
+name: "Check for changes in paths"
+
+on:
+  workflow_call:
+    outputs:
+      gen:
+        value: ${{ jobs.changes.outputs.gen }}
+      lint:
+        value: ${{ jobs.changes.outputs.lint }}
+      any:
+        value: ${{ jobs.changes.outputs.any }}
+      actions:
+        value: ${{ jobs.changes.outputs.actions }}
+      dprint:
+        value: ${{ jobs.changes.outputs.dprint }}
+      markdown:
+        value: ${{ jobs.changes.outputs.markdown }}
+      src:
+        value: ${{ jobs.changes.outputs.src }}
+      spell:
+        value: ${{ jobs.changes.outputs.spell }}
+      dependencies:
+        value: ${{ jobs.changes.outputs.dependencies }}
+
+jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      any: ${{ steps.filter.outputs.changes != '[]' }}
+      actions: ${{ steps.filter.outputs.actions }}
+      dprint: ${{ steps.filter.outputs.dprint }}
+      gen: ${{ steps.filter.outputs.gen }}
+      lint: ${{ steps.filter.outputs.lint }}
+      markdown: ${{ steps.filter.outputs.markdown }}
+      src: ${{ steps.filter.outputs.src }}
+      spell: ${{ steps.filter.outputs.spell }}
+      dependencies: ${{ steps.needs.outputs.dependencies }}
+    steps:
+      # https://github.com/marketplace/actions/checkout
+      - name: Checkout
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+
+      # https://github.com/marketplace/actions/paths-changes-filter
+      - name: Paths Changes Filter
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          filters: |
+            actions:
+              - '.github/actions/**/action.yml'
+              - '.github/actions/**/action.yaml'
+              - '.github/workflows/*.yml'
+              - '.github/workflows/*.yaml'
+            dprint:
+              - "**.json"
+              - "**.jsonc"
+              - "**.md"
+              - "**.toml"
+              - "**.yml"
+              - "**.yaml"
+            gen:
+              - "**.dart"
+              - "**.yaml"
+              - "**/pubspec.lock"
+            lint:
+              - "**.dart"
+              - "**.yaml"
+              - "**/pubspec.lock"
+              - "scripts/report-custom-lint-ci.sh"
+            markdown:
+              - "**.md"
+            src:
+              - "**.dart"
+              - "**.yaml"
+              - "**/pubspec.lock"
+              - "scripts/**"
+            spell:
+              - "**.md"
+              - "**.yaml"
+              - "**.yml"
+              - "**.dart"
+
+      - name: Check for dependencies changes
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        id: needs
+        with:
+          script: |
+            const changes = ${{ steps.filter.outputs.changes }};
+
+            // 依存関係の解決が必要な変更箇所
+            const dependencies = [
+              'gen',
+              'lint',
+              'src',
+            ];
+            core.setOutput('dependencies', changes.some(value => dependencies.includes(value)));
