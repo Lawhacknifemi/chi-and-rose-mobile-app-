@@ -14,12 +14,24 @@ import 'package:flutter/widgets.dart';
 class Assets {
   const Assets._();
 
+  static const AssetGenImage appIcon = AssetGenImage('assets/app_icon.png');
+  static const String frame = 'assets/frame.svg';
+  static const String logo = 'assets/logo.svg';
+  static const AssetGenImage splashBackground = AssetGenImage(
+    'assets/splash_background.png',
+  );
   static const AssetGenImage yumemiLogo = AssetGenImage(
     'assets/yumemi_logo.png',
   );
 
   /// List of all assets
-  static List<AssetGenImage> get values => [yumemiLogo];
+  static List<dynamic> get values => [
+    appIcon,
+    frame,
+    logo,
+    splashBackground,
+    yumemiLogo,
+  ];
 }
 
 class AssetGenImage {

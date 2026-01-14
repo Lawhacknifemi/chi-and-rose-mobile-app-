@@ -1,0 +1,18 @@
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/logo_vector">
+    <target
+        android:name="logo_group"
+        android:animation="@animator/logo_pulse" />
+    <target
+        android:name="glint_group"
+        android:animation="@animator/glint_sweep" />
+    <target
+        android:name="segment_top"
+        android:animation="@animator/segment_1_anim" />
+    <target
+        android:name="segment_middle"
+        android:animation="@animator/segment_2_anim" />
+    <target
+        android:name="segment_right"
+        android:animation="@animator/segment_3_anim" />
+</animated-vector>

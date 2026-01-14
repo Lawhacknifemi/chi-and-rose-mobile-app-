@@ -8,6 +8,7 @@ import 'package:flutter_app/presentation/providers/maintenance_policy_notifier_p
 import 'package:flutter_app/presentation/ui/home_page.dart';
 import 'package:flutter_app/presentation/ui/operational_settings/maintenance_page.dart';
 import 'package:flutter_app/presentation/ui/setting/setting_page.dart';
+import 'package:flutter_app/presentation/ui/splash_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internal_debug/ui.dart';
@@ -21,6 +22,7 @@ part 'package:flutter_app/router/routes/main/home/home_shell_branch.dart';
 part 'package:flutter_app/router/routes/main/main_page_shell_route.dart';
 part 'package:flutter_app/router/routes/main/setting/setting_shell_branch.dart';
 part 'package:flutter_app/router/routes/maintenance_page_route.dart';
+part 'package:flutter_app/router/routes/splash_page_route.dart';
 part 'router.g.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -45,7 +47,7 @@ GoRouter router(Ref ref) {
       if (kDebugMode) $debugPageRoute,
     ],
     debugLogDiagnostics: kDebugMode,
-    initialLocation: HomePageRoute.path,
+    initialLocation: SplashPageRoute.path,
     redirect: (_, _) {
       if (isMaintenanceModeEnabled) {
         return MaintenancePageRoute.path;

@@ -12,6 +12,7 @@ List<RouteBase> get $appRoutes => [
   $debugPageRoute,
   $mainPageShellRoute,
   $maintenancePageRoute,
+  $splashPageRoute,
 ];
 
 RouteBase get $debugPageRoute => GoRouteData.$route(
@@ -222,11 +223,35 @@ mixin _$MaintenancePageRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
+RouteBase get $splashPageRoute =>
+    GoRouteData.$route(path: '/splash', factory: _$SplashPageRoute._fromState);
+
+mixin _$SplashPageRoute on GoRouteData {
+  static SplashPageRoute _fromState(GoRouterState state) =>
+      const SplashPageRoute();
+
+  @override
+  String get location => GoRouteData.$location('/splash');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$routerHash() => r'7f2c119c1ed13737bc4e35a5527ceed85f06309a';
+String _$routerHash() => r'3d0ee1da27e86b2915f2a0fed8327fa908b8f4d1';
 
 /// See also [router].
 @ProviderFor(router)

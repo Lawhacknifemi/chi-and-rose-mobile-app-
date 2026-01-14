@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/app_initializer.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_app/presentation/providers/force_update_policy_notifier_provider.dart';
 import 'package:flutter_app/presentation/providers/theme_setting_provider.dart';
 import 'package:flutter_app/router/router.dart';
@@ -19,7 +20,8 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:talker_riverpod_logger/talker_riverpod_logger_observer.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await LocaleSettings.useDeviceLocale();
 
   LicenseRegistry.addLicense(() async* {

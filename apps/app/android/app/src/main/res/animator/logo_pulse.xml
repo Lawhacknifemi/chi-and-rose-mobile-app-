@@ -1,0 +1,91 @@
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:ordering="together">
+    
+    <!-- PHASE 1: Assembly Zoom (0-1000ms) -->
+    <objectAnimator
+        android:duration="1000"
+        android:propertyName="scaleX"
+        android:valueFrom="0.4"
+        android:valueTo="0.45"
+        android:valueType="floatType" />
+    <objectAnimator
+        android:duration="1000"
+        android:propertyName="scaleY"
+        android:valueFrom="0.4"
+        android:valueTo="0.45"
+        android:valueType="floatType" />
+
+    <!-- PHASE 2: Heartbeat 1 (1000-1400ms) -->
+    <set android:ordering="sequentially">
+        <!-- Compress -->
+        <objectAnimator
+            android:duration="200"
+            android:startOffset="1000"
+            android:propertyName="scaleX"
+            android:valueFrom="0.45"
+            android:valueTo="0.38"
+            android:valueType="floatType" />
+        <!-- Bounce Out -->
+        <objectAnimator
+            android:duration="200"
+            android:propertyName="scaleX"
+            android:valueFrom="0.38"
+            android:valueTo="0.5"
+            android:valueType="floatType" />
+    </set>
+    <set android:ordering="sequentially">
+        <!-- Compress -->
+        <objectAnimator
+            android:duration="200"
+            android:startOffset="1000"
+            android:propertyName="scaleY"
+            android:valueFrom="0.45"
+            android:valueTo="0.38"
+            android:valueType="floatType" />
+        <!-- Bounce Out -->
+        <objectAnimator
+            android:duration="200"
+            android:propertyName="scaleY"
+            android:valueFrom="0.38"
+            android:valueTo="0.5"
+            android:valueType="floatType" />
+    </set>
+
+    <!-- PHASE 3: Heartbeat 2 + The FINAL BURST (1400-2500ms) -->
+    <set android:ordering="sequentially">
+        <!-- Relax -->
+        <objectAnimator
+            android:duration="200"
+            android:startOffset="1400"
+            android:propertyName="scaleX"
+            android:valueFrom="0.5"
+            android:valueTo="0.42"
+            android:valueType="floatType" />
+        <!-- THE INFINITE ZOOM (Burst through screen) -->
+        <objectAnimator
+            android:duration="900"
+            android:propertyName="scaleX"
+            android:valueFrom="0.42"
+            android:valueTo="2.5"
+            android:valueType="floatType"
+            android:interpolator="@android:anim/accelerate_interpolator" />
+    </set>
+    <set android:ordering="sequentially">
+        <!-- Relax -->
+        <objectAnimator
+            android:duration="200"
+            android:startOffset="1400"
+            android:propertyName="scaleY"
+            android:valueFrom="0.5"
+            android:valueTo="0.42"
+            android:valueType="floatType" />
+        <!-- THE INFINITE ZOOM (Burst through screen) -->
+        <objectAnimator
+            android:duration="900"
+            android:propertyName="scaleY"
+            android:valueFrom="0.42"
+            android:valueTo="2.5"
+            android:valueType="floatType"
+            android:interpolator="@android:anim/accelerate_interpolator" />
+    </set>
+</set>
