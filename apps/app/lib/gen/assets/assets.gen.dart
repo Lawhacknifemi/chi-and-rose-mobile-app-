@@ -14,22 +14,68 @@ import 'package:flutter/widgets.dart';
 class Assets {
   const Assets._();
 
+  static const AssetGenImage lOGOPng = AssetGenImage('assets/LOGO.png');
+  static const String logoSvg = 'assets/logo.svg';
+  static const String layer1 = 'assets/Layer_1.svg';
+  static const String animation = 'assets/animation.json';
   static const AssetGenImage appIcon = AssetGenImage('assets/app_icon.png');
+  static const String appleIcon = 'assets/apple_icon.svg';
+  static const AssetGenImage background = AssetGenImage(
+    'assets/background.png',
+  );
+  static const AssetGenImage bannerImage = AssetGenImage(
+    'assets/banner_image.png',
+  );
+  static const AssetGenImage c1bdd49aC54a4c569c766e8904ff020d = AssetGenImage(
+    'assets/c1bdd49a-c54a-4c56-9c76-6e8904ff020d.jpeg',
+  );
+  static const AssetGenImage cellIllustration = AssetGenImage(
+    'assets/cell_illustration.png',
+  );
+  static const AssetGenImage communityPng = AssetGenImage(
+    'assets/community.png',
+  );
+  static const String communitySvg = 'assets/community.svg';
+  static const String embryoanimation = 'assets/embryoanimation.json';
+  static const String facebookIcon = 'assets/facebook_icon.svg';
   static const String frame = 'assets/frame.svg';
-  static const String logo = 'assets/logo.svg';
+  static const String googleIcon = 'assets/google_icon.svg';
+  static const AssetGenImage homeGradientBg = AssetGenImage(
+    'assets/home_gradient_bg.png',
+  );
+  static const String profile = 'assets/profile.svg';
+  static const String rippleloading = 'assets/rippleloading.json';
   static const AssetGenImage splashBackground = AssetGenImage(
     'assets/splash_background.png',
   );
+  static const String vector1 = 'assets/vector_1.svg';
   static const AssetGenImage yumemiLogo = AssetGenImage(
     'assets/yumemi_logo.png',
   );
 
   /// List of all assets
   static List<dynamic> get values => [
+    lOGOPng,
+    logoSvg,
+    layer1,
+    animation,
     appIcon,
+    appleIcon,
+    background,
+    bannerImage,
+    c1bdd49aC54a4c569c766e8904ff020d,
+    cellIllustration,
+    communityPng,
+    communitySvg,
+    embryoanimation,
+    facebookIcon,
     frame,
-    logo,
+    googleIcon,
+    homeGradientBg,
+    profile,
+    rippleloading,
     splashBackground,
+    vector1,
     yumemiLogo,
   ];
 }

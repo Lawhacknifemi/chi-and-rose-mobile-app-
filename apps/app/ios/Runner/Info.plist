@@ -13,8 +13,10 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>${appName}</string>
-		<key>CFBundlePackageType</key>
+	<string>flutter_app</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to scan product barcodes.</string>
+	<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
 		<string>$(FLUTTER_BUILD_NAME)</string>
@@ -52,5 +54,16 @@
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>chiandrose</string>
+				</array>
+			</dict>
+		</array>
 	</dict>
 </plist>

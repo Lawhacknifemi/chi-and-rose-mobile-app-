@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:internal_debug/ui.dart';
 import 'package:internal_design_theme/themes.dart';
 import 'package:internal_design_ui/i18n.dart';
+import 'package:flutter_app/composition_root/repositories/deep_link_repository.dart';
 import 'package:internal_domain_model/operational_settings/operational_settings.dart';
 import 'package:internal_domain_model/theme_setting/theme_setting.dart';
 import 'package:internal_util_ui/snack_bar_manager.dart';
@@ -28,24 +29,72 @@ void main() async {
     yield _yumemiMobileProjectTemplateLicense();
   });
 
-  final (
-    overrideProviders: overrideProviders,
-  ) = await AppInitializer.initialize();
-  final overrideObservers = <ProviderObserver>[];
+  // Start initialization in parallel - don't await here
+  final initializationFuture = AppInitializer.initialize();
+  
+  runApp(
+    ChiAndRoseApp(initializationFuture: initializationFuture),
+  );
+}
 
-  if (kDebugMode) {
-    final talker = TalkerFlutter.init(settings: TalkerSettings());
-    overrideProviders.add(talkerProvider.overrideWithValue(talker));
-    overrideObservers.add(TalkerRiverpodObserver(talker: talker));
+class ChiAndRoseApp extends StatefulWidget {
+  const ChiAndRoseApp({
+    super.key,
+    required this.initializationFuture,
+  });
+
+  final Future<InitializedValues> initializationFuture;
+
+  @override
+  State<ChiAndRoseApp> createState() => _ChiAndRoseAppState();
+}
+
+class _ChiAndRoseAppState extends State<ChiAndRoseApp> {
+  // Cache overrides to ensure they remain stable across rebuilds (hot reloads)
+  // to prevent Riverpod "Tried to change the number of overrides" error.
+  List<Override>? _overrides;
+  final _observers = <ProviderObserver>[];
+
+  @override
+  void initState() {
+    super.initState();
+    if (kDebugMode) {
+      _observers.add(TalkerRiverpodObserver(talker: TalkerFlutter.init()));
+    }
   }
 
-  runApp(
-    ProviderScope(
-      overrides: overrideProviders,
-      observers: overrideObservers,
-      child: TranslationProvider(child: const MainApp()),
-    ),
-  );
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<InitializedValues>(
+      future: widget.initializationFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          // Initialize overrides only once
+          if (_overrides == null) {
+            _overrides = [
+              ...snapshot.data!.overrideProviders,
+              if (kDebugMode)
+                talkerProvider.overrideWithValue(TalkerFlutter.init()),
+            ];
+          }
+
+          return ProviderScope(
+            overrides: _overrides!,
+            observers: _observers,
+            child: TranslationProvider(child: const MainApp()),
+          );
+        }
+
+        // Show a minimal loading state while initializing
+        return const MaterialApp(
+          home: Scaffold(
+            backgroundColor: Color(0xFFF3E6F4),
+            body: Center(child: CircularProgressIndicator()),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class MainApp extends ConsumerWidget {
@@ -58,6 +107,9 @@ class MainApp extends ConsumerWidget {
 
     final enableAccessibilityTools =
         kDebugMode && ref.watch(enableAccessibilityToolsProvider);
+
+    // Initialize Deep Link Listener
+    ref.watch(deepLinkRepositoryProvider);
 
     ref.listen(forceUpdatePolicyNotifierProvider, (
       _,

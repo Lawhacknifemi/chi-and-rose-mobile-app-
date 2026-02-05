@@ -36,6 +36,7 @@ dependencies:
     path: ../../packages/shared
   internal_util_ui:
     path: ../../packages/util_ui
+  flutter_svg: ^2.0.17
   intl: ^0.20.2
   package_info_plus: ^8.3.1
   pub_semver: ^2.2.0
@@ -43,7 +44,17 @@ dependencies:
   shared_preferences: ^2.5.3
   talker_flutter: ^5.0.0
   talker_riverpod_logger: ^5.0.0
-  flutter_svg: ^2.0.10+1
+  video_player: ^2.10.1
+  lottie: ^3.3.2
+  path_drawing: ^1.0.1
+  font_awesome_flutter: ^10.12.0
+  pinput: ^6.0.1
+  url_launcher: ^6.3.2
+  app_links: ^7.0.0
+  http: ^1.6.0
+  mobile_scanner: ^6.0.2
+  flutter_markdown: ^0.7.7+1
+
 
 dev_dependencies:
   build_runner: ^2.5.4
@@ -65,8 +76,26 @@ flutter:
     - assets/yumemi_logo.png
     - assets/splash_background.png
     - assets/app_icon.png
+    - assets/LOGO.png
     - assets/logo.svg
     - assets/frame.svg
+    - assets/background.png
+    - assets/vector_1.svg
+    - assets/Layer_1.svg
+    - assets/animation.json
+    - assets/google_icon.svg
+    - assets/facebook_icon.svg
+    - assets/apple_icon.svg
+    - assets/home_gradient_bg.png
+    - assets/banner_image.png
+    - assets/community.svg
+    - assets/community.png
+    - assets/profile.svg
+    - assets/cell_illustration.png
+    - assets/c1bdd49a-c54a-4c56-9c76-6e8904ff020d.jpeg
+    - assets/embryoanimation.json
+    - assets/rippleloading.json
+    # End of assets
 
 flutter_launcher_icons:
   android: true

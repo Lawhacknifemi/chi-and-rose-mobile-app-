@@ -1,7 +1,7 @@
 <set xmlns:android="http://schemas.android.com/apk/res/android"
     android:ordering="together">
     <objectAnimator
-        android:duration="2500"
+        android:duration="1800"
         android:propertyName="translateX"
         android:repeatCount="infinite"
         android:valueFrom="-100"

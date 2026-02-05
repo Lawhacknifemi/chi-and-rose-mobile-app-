@@ -25,13 +25,6 @@ class OperationalSettingsRepositoryImpl
 
   // TODO: テストデータのため、案件に合わせて修正する
   Future<ForceUpdatePolicy> getForceUpdatePolicy() {
-    return Future.value(
-      ForceUpdatePolicy.enabled(
-        minimumVersions: RequiredVersions(
-          ios: Version.none,
-          android: Version.none,
-        ),
-      ),
-    );
+    return Future.value(const ForceUpdatePolicy.disabled());
   }
 }

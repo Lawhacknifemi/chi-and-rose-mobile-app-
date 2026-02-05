@@ -10,8 +10,10 @@ part of 'router.dart';
 
 List<RouteBase> get $appRoutes => [
   $debugPageRoute,
+  $discoverPageRoute,
   $mainPageShellRoute,
   $maintenancePageRoute,
+  $onboardingPageRoute,
   $splashPageRoute,
 ];
 
@@ -102,6 +104,33 @@ mixin _$TalkerPageRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
+RouteBase get $discoverPageRoute => GoRouteData.$route(
+  path: '/discover',
+
+  factory: _$DiscoverPageRoute._fromState,
+);
+
+mixin _$DiscoverPageRoute on GoRouteData {
+  static DiscoverPageRoute _fromState(GoRouterState state) =>
+      const DiscoverPageRoute();
+
+  @override
+  String get location => GoRouteData.$location('/discover');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
 RouteBase get $mainPageShellRoute => StatefulShellRouteData.$route(
   factory: $MainPageShellRouteExtension._fromState,
   branches: [
@@ -113,16 +142,32 @@ RouteBase get $mainPageShellRoute => StatefulShellRouteData.$route(
     StatefulShellBranchData.$branch(
       routes: [
         GoRouteData.$route(
-          path: '/setting',
+          path: '/period-tracker',
 
-          factory: _$SettingPageRoute._fromState,
-          routes: [
-            GoRouteData.$route(
-              path: 'license',
+          factory: _$PeriodTrackerPageRoute._fromState,
+        ),
+      ],
+    ),
+    StatefulShellBranchData.$branch(
+      routes: [
+        GoRouteData.$route(path: '/scan', factory: _$ScanPageRoute._fromState),
+      ],
+    ),
+    StatefulShellBranchData.$branch(
+      routes: [
+        GoRouteData.$route(
+          path: '/community',
 
-              factory: _$LicensePageRoute._fromState,
-            ),
-          ],
+          factory: _$CommunityPageRoute._fromState,
+        ),
+      ],
+    ),
+    StatefulShellBranchData.$branch(
+      routes: [
+        GoRouteData.$route(
+          path: '/profile',
+
+          factory: _$ProfilePageRoute._fromState,
         ),
       ],
     ),
@@ -154,12 +199,12 @@ mixin _$HomePageRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
-mixin _$SettingPageRoute on GoRouteData {
-  static SettingPageRoute _fromState(GoRouterState state) =>
-      const SettingPageRoute();
+mixin _$PeriodTrackerPageRoute on GoRouteData {
+  static PeriodTrackerPageRoute _fromState(GoRouterState state) =>
+      const PeriodTrackerPageRoute();
 
   @override
-  String get location => GoRouteData.$location('/setting');
+  String get location => GoRouteData.$location('/period-tracker');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -175,12 +220,53 @@ mixin _$SettingPageRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
-mixin _$LicensePageRoute on GoRouteData {
-  static LicensePageRoute _fromState(GoRouterState state) =>
-      const LicensePageRoute();
+mixin _$ScanPageRoute on GoRouteData {
+  static ScanPageRoute _fromState(GoRouterState state) => const ScanPageRoute();
 
   @override
-  String get location => GoRouteData.$location('/setting/license');
+  String get location => GoRouteData.$location('/scan');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin _$CommunityPageRoute on GoRouteData {
+  static CommunityPageRoute _fromState(GoRouterState state) =>
+      const CommunityPageRoute();
+
+  @override
+  String get location => GoRouteData.$location('/community');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin _$ProfilePageRoute on GoRouteData {
+  static ProfilePageRoute _fromState(GoRouterState state) =>
+      const ProfilePageRoute();
+
+  @override
+  String get location => GoRouteData.$location('/profile');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -208,6 +294,33 @@ mixin _$MaintenancePageRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/maintenance');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $onboardingPageRoute => GoRouteData.$route(
+  path: '/onboarding',
+
+  factory: _$OnboardingPageRoute._fromState,
+);
+
+mixin _$OnboardingPageRoute on GoRouteData {
+  static OnboardingPageRoute _fromState(GoRouterState state) =>
+      const OnboardingPageRoute();
+
+  @override
+  String get location => GoRouteData.$location('/onboarding');
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -251,7 +364,7 @@ mixin _$SplashPageRoute on GoRouteData {
 // RiverpodGenerator
 // **************************************************************************
 
-String _$routerHash() => r'3d0ee1da27e86b2915f2a0fed8327fa908b8f4d1';
+String _$routerHash() => r'1a7bf39360b933ef980e79601720de0b154fb26c';
 
 /// See also [router].
 @ProviderFor(router)

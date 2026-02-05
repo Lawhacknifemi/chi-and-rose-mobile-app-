@@ -1,33 +1,33 @@
 <set xmlns:android="http://schemas.android.com/apk/res/android"
     android:ordering="together">
     
-    <!-- PHASE 1: Assembly Zoom (0-1000ms) -->
+    <!-- PHASE 1: Assembly Zoom (0-700ms) - Faster but still smooth -->
     <objectAnimator
-        android:duration="1000"
+        android:duration="700"
         android:propertyName="scaleX"
         android:valueFrom="0.4"
         android:valueTo="0.45"
         android:valueType="floatType" />
     <objectAnimator
-        android:duration="1000"
+        android:duration="700"
         android:propertyName="scaleY"
         android:valueFrom="0.4"
         android:valueTo="0.45"
         android:valueType="floatType" />
 
-    <!-- PHASE 2: Heartbeat 1 (1000-1400ms) -->
+    <!-- PHASE 2: Heartbeat 1 (700-1000ms) - Snappier heartbeat -->
     <set android:ordering="sequentially">
         <!-- Compress -->
         <objectAnimator
-            android:duration="200"
-            android:startOffset="1000"
+            android:duration="150"
+            android:startOffset="700"
             android:propertyName="scaleX"
             android:valueFrom="0.45"
             android:valueTo="0.38"
             android:valueType="floatType" />
         <!-- Bounce Out -->
         <objectAnimator
-            android:duration="200"
+            android:duration="150"
             android:propertyName="scaleX"
             android:valueFrom="0.38"
             android:valueTo="0.5"
@@ -36,34 +36,34 @@
     <set android:ordering="sequentially">
         <!-- Compress -->
         <objectAnimator
-            android:duration="200"
-            android:startOffset="1000"
+            android:duration="150"
+            android:startOffset="700"
             android:propertyName="scaleY"
             android:valueFrom="0.45"
             android:valueTo="0.38"
             android:valueType="floatType" />
         <!-- Bounce Out -->
         <objectAnimator
-            android:duration="200"
+            android:duration="150"
             android:propertyName="scaleY"
             android:valueFrom="0.38"
             android:valueTo="0.5"
             android:valueType="floatType" />
     </set>
 
-    <!-- PHASE 3: Heartbeat 2 + The FINAL BURST (1400-2500ms) -->
+    <!-- PHASE 3: Heartbeat 2 + The FINAL BURST (1000-1800ms) - Faster burst -->
     <set android:ordering="sequentially">
         <!-- Relax -->
         <objectAnimator
-            android:duration="200"
-            android:startOffset="1400"
+            android:duration="150"
+            android:startOffset="1000"
             android:propertyName="scaleX"
             android:valueFrom="0.5"
             android:valueTo="0.42"
             android:valueType="floatType" />
-        <!-- THE INFINITE ZOOM (Burst through screen) -->
+        <!-- THE INFINITE ZOOM (Burst through screen) - Faster acceleration -->
         <objectAnimator
-            android:duration="900"
+            android:duration="650"
             android:propertyName="scaleX"
             android:valueFrom="0.42"
             android:valueTo="2.5"
@@ -73,15 +73,15 @@
     <set android:ordering="sequentially">
         <!-- Relax -->
         <objectAnimator
-            android:duration="200"
-            android:startOffset="1400"
+            android:duration="150"
+            android:startOffset="1000"
             android:propertyName="scaleY"
             android:valueFrom="0.5"
             android:valueTo="0.42"
             android:valueType="floatType" />
-        <!-- THE INFINITE ZOOM (Burst through screen) -->
+        <!-- THE INFINITE ZOOM (Burst through screen) - Faster acceleration -->
         <objectAnimator
-            android:duration="900"
+            android:duration="650"
             android:propertyName="scaleY"
             android:valueFrom="0.42"
             android:valueTo="2.5"

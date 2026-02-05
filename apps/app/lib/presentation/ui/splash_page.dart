@@ -19,7 +19,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800), // Snappier reveal
+      duration: const Duration(milliseconds: 500), // Faster, snappier reveal
     );
 
     // Bottom-to-Top Reveal: 0.0 (hidden) to 1.0 (full reveal)
@@ -38,9 +38,9 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   }
 
   void _startAnimation() async {
-    // Wait for the native "Double Heartbeat Burst" to START its final expansion
-    // Caught at 1600ms (the exact moment the big burst begins)
-    await Future.delayed(const Duration(milliseconds: 1600));
+    // Wait for the optimized native animation to reach the burst phase
+    // Caught at 1200ms (the moment the final burst begins in the faster animation)
+    await Future.delayed(const Duration(milliseconds: 1200));
     
     if (mounted) {
       // Handover immediately to keep the momentum
@@ -48,9 +48,10 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
       _controller.forward();
     }
 
-    // Wait for the reveal to complete then go home
-    await Future.delayed(const Duration(milliseconds: 1200));
+    // Reduced delay: faster navigation while maintaining smooth reveal
+    await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) {
+      // Router will handle redirect to onboarding or home based on state
       context.go('/');
     }
   }
