@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter_app/composition_root/data_sources/shared_preference_data_source.dart';
 
 import 'package:flutter_app/configuration/api_configuration.dart';
@@ -32,7 +33,63 @@ class AuthRepository {
 
   Future<void> signInWithApple() async {
     debugPrint('AuthRepository: signInWithApple called');
-    await _signInWithProvider('apple');
+    
+    // Native Apple Sign In is only available on iOS and macOS
+    if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+      try {
+        final credential = await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+        );
+
+        debugPrint('Apple Credential Obtained: identityToken length: ${credential.identityToken?.length}');
+
+        if (credential.identityToken == null) {
+          throw Exception('Apple Identity Token is null');
+        }
+
+        // Exchange identityToken for a session on the server
+        final url = Uri.parse('$_baseUrl/api/auth/sign-in/social');
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'provider': 'apple',
+            'idToken': credential.identityToken,
+          }),
+        );
+
+        debugPrint('Apple Token Exchange Response: ${response.statusCode} - ${response.body}');
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          // Handle both top-level token or nested session token
+          final token = data['token'] ?? data['session']?['token'];
+          
+          if (token != null) {
+            await saveToken(token);
+            debugPrint('Apple Native Sign In Successful & Token Saved');
+          } else {
+             throw Exception('Token not found in server response');
+          }
+        } else {
+          throw Exception('Apple Token Exchange failed: ${response.body}');
+        }
+      } catch (e) {
+        debugPrint('Error during Native Apple Sign In: $e');
+        // Handle cancellation or other errors
+        if (e is SignInWithAppleAuthorizationException && e.code == AuthorizationErrorCode.canceled) {
+           debugPrint('Apple Sign In canceled by user');
+           return;
+        }
+        rethrow;
+      }
+    } else {
+      // Fallback to browser-based flow on other platforms
+      await _signInWithProvider('apple');
+    }
   }
 
   Future<void> signInWithEmailAndPassword(String email, String password) async {

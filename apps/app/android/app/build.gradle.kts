@@ -31,7 +31,7 @@ tasks.named("preBuild") {
 }
 
 android {
-    namespace = "jp.co.yumemi.flutter_app"
+    namespace = "online.ship10x.chirose"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

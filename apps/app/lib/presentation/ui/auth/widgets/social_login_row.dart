@@ -12,14 +12,7 @@ class SocialLoginRow extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _SocialButton(
-          assetPath: 'assets/facebook_icon.svg',
-          onTap: () {
-             // TODO: Facebook Auth
-             print("UI: Tapped Facebook Sign In (Not Implemented)");
-          },
-        ),
-        const SizedBox(width: 20),
+
         _SocialButton(
           assetPath: 'assets/google_icon.svg',
           onTap: () async {

@@ -27,4 +27,4 @@ This is a template project for Android and iOS apps.
 |          |            Dev            |            Stg            |          Prd          |
 | :------: | :-----------------------: | :-----------------------: | :-------------------: |
 | APP_NAME |       dev-Template        |       stg-Template        |       Template        |
-|  APP_ID  | jp.co.yumemi.template.dev | jp.co.yumemi.template.stg | jp.co.yumemi.template |
+|  APP_ID  | online.ship10x.chirose.dev | online.ship10x.chirose.stg | online.ship10x.chirose |

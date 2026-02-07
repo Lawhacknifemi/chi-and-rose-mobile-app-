@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_app/presentation/providers/flow_provider.dart';
+import 'package:flutter_app/composition_root/repositories/flow_repository.dart' hide flowSettingsProvider;
 
 class EditPeriodPage extends ConsumerStatefulWidget {
   const EditPeriodPage({super.key});
@@ -16,6 +18,69 @@ class _EditPeriodPageState extends ConsumerState<EditPeriodPage> {
   DateTime _selectedDate = DateTime.now();
   String _selectedMood = 'Neutral'; // Default mood
   final List<String> _selectedSymptoms = [];
+  bool _isInitialized = false;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _initializeFromSettings(Map<String, dynamic> settings) {
+    if (_isInitialized) return;
+    setState(() {
+      _periodDuration = settings['averagePeriodLength'] ?? 4;
+      _cycleLength = settings['averageCycleLength'] ?? 28;
+      if (settings['lastPeriodStart'] != null) {
+        _selectedDate = DateTime.parse(settings['lastPeriodStart'].toString());
+      }
+      _isInitialized = true;
+    });
+  }
+
+  Future<void> _handleSave() async {
+    setState(() => _isSaving = true);
+    try {
+      final repository = ref.read(flowRepositoryProvider);
+      
+      // Update settings
+      await repository.updateSettings(
+        averageCycleLength: _cycleLength,
+        averagePeriodLength: _periodDuration,
+      );
+
+      // Log period start (using the selected date)
+      await repository.logPeriodStart(_selectedDate);
+
+      // Log daily entry if mood/symptoms selected
+      if (_selectedMood != 'Neutral' || _selectedSymptoms.isNotEmpty) {
+        await repository.logDailyEntry(
+          date: DateTime.now(),
+          mood: _selectedMood,
+          symptoms: _selectedSymptoms,
+        );
+      }
+
+      // Invalidate providers to refresh UI
+      ref.invalidate(flowSettingsProvider);
+      ref.invalidate(calendarDataProvider);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Changes saved successfully!')),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving changes: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
 
   // Theme Colors
   final Color _primaryColor = const Color(0xFFE91E63); // Berry Pink
@@ -39,65 +104,79 @@ class _EditPeriodPageState extends ConsumerState<EditPeriodPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bgColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
+    final settingsAsync = ref.watch(flowSettingsProvider);
+
+    return settingsAsync.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      data: (settings) {
+        if (settings != null) {
+          _initializeFromSettings(settings);
+        }
+
+        return Scaffold(
+          backgroundColor: _bgColor,
+          body: SafeArea(
+            child: Stack(
               children: [
-                _buildHeader(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                    child: Column(
-                      children: [
-                        _buildCycleInfoCard(),
-                        const SizedBox(height: 16),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                Column(
+                  children: [
+                    _buildHeader(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        child: Column(
                           children: [
-                            Expanded(child: _buildCalendarCard()),
-                            const SizedBox(width: 16),
-                            Expanded(child: _buildMoodsCard()),
+                            _buildCycleInfoCard(),
+                            const SizedBox(height: 16),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(child: _buildCalendarCard()),
+                                const SizedBox(width: 16),
+                                Expanded(child: _buildMoodsCard()),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            _buildSymptomsCard(),
+                            const SizedBox(height: 100), // Space for FAB
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        _buildSymptomsCard(),
-                        const SizedBox(height: 100), // Space for FAB
-                      ],
+                      ),
+                    ),
+                  ],
+                ),
+                
+                // Floating CTA
+                Positioned(
+                  left: 24,
+                  right: 24,
+                  bottom: 24,
+                  child: SizedBox(
+                    height: 56, // Full height pill
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : _handleSave,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryColor,
+                        foregroundColor: Colors.white,
+                        elevation: 8,
+                        shadowColor: _primaryColor.withOpacity(0.4),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                      ),
+                      child: _isSaving 
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text(
+                            'Save Changes',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
                     ),
                   ),
                 ),
               ],
             ),
-            
-            // Floating CTA
-            Positioned(
-              left: 24,
-              right: 24,
-              bottom: 24,
-              child: SizedBox(
-                height: 56, // Full height pill
-                child: ElevatedButton(
-                  onPressed: () => context.pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _primaryColor,
-                    foregroundColor: Colors.white,
-                    elevation: 8,
-                    shadowColor: _primaryColor.withOpacity(0.4),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                  ),
-                  child: const Text(
-                    'Save Changes',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -288,7 +367,7 @@ class _EditPeriodPageState extends ConsumerState<EditPeriodPage> {
               fontSize: 10, 
               color: isSelected ? Colors.white : Colors.black87, 
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
-            )
+            ),
           ),
         );
       }),

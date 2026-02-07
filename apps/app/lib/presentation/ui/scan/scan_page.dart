@@ -1,9 +1,13 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter_app/composition_root/repositories/scan_repository.dart';
-import 'package:flutter_app/presentation/ui/scan/widgets/product_analysis_details.dart';
+import 'package:flutter_app/presentation/ui/details/product_details_page.dart';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart' as google_mlkit;
 
 class ScanPage extends ConsumerStatefulWidget {
   const ScanPage({super.key});
@@ -19,6 +23,36 @@ class _ScanPageState extends ConsumerState<ScanPage> with WidgetsBindingObserver
   String? _errorMessage;
 
   final MobileScannerController _controller = MobileScannerController();
+  final ImagePicker _picker = ImagePicker();
+
+  int _loadingMessageIndex = 0;
+  Timer? _loadingTimer;
+  final List<String> _loadingMessages = [
+    "Analyzing image...",
+    "Identifying barcode...",
+    "Fetching product details...",
+    "Checking ingredients...",
+    "Almost there...",
+  ];
+
+  void _startLoadingTimer() {
+    _stopLoadingTimer();
+    setState(() {
+      _loadingMessageIndex = 0;
+    });
+    _loadingTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (mounted) {
+        setState(() {
+          _loadingMessageIndex = (_loadingMessageIndex + 1) % _loadingMessages.length;
+        });
+      }
+    });
+  }
+
+  void _stopLoadingTimer() {
+    _loadingTimer?.cancel();
+    _loadingTimer = null;
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -37,7 +71,62 @@ class _ScanPageState extends ConsumerState<ScanPage> with WidgetsBindingObserver
   void dispose() {
     _controller.dispose();
     _manualController.dispose();
+    _stopLoadingTimer();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image == null) return;
+
+      setState(() {
+        _isScanning = false;
+        _isLoading = true;
+        _errorMessage = null;
+      });
+      _startLoadingTimer();
+
+      // Use Google ML Kit directly for better static image analysis
+      final inputImage = google_mlkit.InputImage.fromFilePath(image.path);
+      final barcodeScanner = google_mlkit.BarcodeScanner(formats: [google_mlkit.BarcodeFormat.all]);
+      
+      try {
+        final barcodes = await barcodeScanner.processImage(inputImage);
+        
+        if (barcodes.isNotEmpty) {
+          final barcode = barcodes.first.rawValue;
+          if (barcode != null) {
+            await barcodeScanner.close();
+            await _processBarcode(barcode);
+            return;
+          }
+        }
+      } finally {
+        await barcodeScanner.close();
+      }
+
+      // Fallback: If local scan failed, try server-side detection
+      if (mounted) {
+         final serverResult = await ref.read(scanRepositoryProvider).detectBarcodeFromImage(File(image.path));
+         if (serverResult != null && serverResult['barcode'] != null) {
+            await _processBarcode(serverResult['barcode']);
+            return; // Exit here if successful
+         }
+      }
+
+      _stopLoadingTimer();
+      setState(() {
+        _isLoading = false;
+        _errorMessage = "No barcode found in the image. Please try again or enter manually.";
+      });
+    } catch (e) {
+      _stopLoadingTimer();
+      setState(() {
+        _isLoading = false;
+        _errorMessage = "Error picking image: $e";
+      });
+    }
   }
 
 
@@ -88,9 +177,17 @@ class _ScanPageState extends ConsumerState<ScanPage> with WidgetsBindingObserver
                           icon: const Icon(Icons.flash_on, color: Colors.white),
                           onPressed: () => _controller.toggleTorch(),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.cameraswitch, color: Colors.white),
-                          onPressed: () => _controller.switchCamera(),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.image, color: Colors.white),
+                              onPressed: _pickImage,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.cameraswitch, color: Colors.white),
+                              onPressed: () => _controller.switchCamera(),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -166,6 +263,7 @@ class _ScanPageState extends ConsumerState<ScanPage> with WidgetsBindingObserver
       _isLoading = true;
       _errorMessage = null;
     });
+    _startLoadingTimer();
 
     try {
       final result = await ref.read(scanRepositoryProvider).scanBarcode(barcode);
@@ -173,16 +271,31 @@ class _ScanPageState extends ConsumerState<ScanPage> with WidgetsBindingObserver
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _stopLoadingTimer();
           _scanResult = result;
           if (result == null || result['found'] != true) {
              _errorMessage = "Product not found.";
           }
         });
+
+        if (result != null && result['found'] == true) {
+            Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (context) => ProductDetailsPage(
+                        product: result['product'],
+                        analysis: result['analysis'],
+                        scannedAt: DateTime.now(),
+                        barcode: barcode,
+                    ),
+                ),
+            ).then((_) => _resetScan());
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _stopLoadingTimer();
           _errorMessage = "Error scanning: $e";
         });
       }
@@ -201,7 +314,19 @@ class _ScanPageState extends ConsumerState<ScanPage> with WidgetsBindingObserver
               height: 200,
             ),
             const SizedBox(height: 16),
-            const Text("Analyzing ingredients...", style: TextStyle(fontSize: 16)),
+            const SizedBox(height: 16),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              child: Text(
+                _loadingMessages[_loadingMessageIndex],
+                key: ValueKey<String>(_loadingMessages[_loadingMessageIndex]),
+                style: const TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
           ],
         ),
       );
@@ -228,14 +353,7 @@ class _ScanPageState extends ConsumerState<ScanPage> with WidgetsBindingObserver
       );
     }
 
-    // Success Result
-    final product = _scanResult!['product'];
-    final analysis = _scanResult!['analysis'];
-
-    return ProductAnalysisDetails(
-      product: product,
-      analysis: analysis,
-      onScanAgain: _resetScan,
-    );
+    return const SizedBox.shrink(); 
   }
 }
+

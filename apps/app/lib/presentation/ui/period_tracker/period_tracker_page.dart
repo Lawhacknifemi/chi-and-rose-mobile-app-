@@ -4,54 +4,83 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:math' as math;
+import 'package:flutter_app/presentation/providers/flow_provider.dart';
+import 'package:intl/intl.dart';
 
 class FlowTrackerPage extends ConsumerWidget {
   const FlowTrackerPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settingsAsync = ref.watch(flowSettingsProvider);
+    final now = DateTime.now();
+    final calendarAsync = ref.watch(calendarDataProvider(month: now.month, year: now.year));
+
     return Scaffold(
       extendBodyBehindAppBar: true,
-      body: Stack(
-        children: [
-          // Background Image (Matched with Home Screen)
-          Positioned.fill(
-            child: Image.asset(
-              'assets/home_gradient_bg.png',
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(color: Colors.white),
-            ),
-          ),
+      body: settingsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (settings) {
+          final int cycleLength = settings?['averageCycleLength'] ?? 28;
+          final int periodLength = settings?['averagePeriodLength'] ?? 5;
+          final lastPeriodStart = settings?['lastPeriodStart'] != null 
+              ? DateTime.parse(settings!['lastPeriodStart'].toString())
+              : null;
           
-          // Main Content
-          SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(context),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 0),
-                    child: Column(
-                      children: [
-                        // Calendar Strip
-                        _buildCalendarStrip(),
-                        const SizedBox(height: 24),
-                        // Tracker Card
-                        _buildTrackerCard(context),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
+          int currentDay = 1;
+          if (lastPeriodStart != null) {
+            currentDay = DateTime.now().difference(lastPeriodStart).inDays + 1;
+            // Removed auto-reset logic. If day > cycleLength, it means "Late".
+          }
+
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/home_gradient_bg.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(color: Colors.white),
                 ),
-              ],
-            ),
-          ),
-        ],
+              ),
+              SafeArea(
+                child: Column(
+                  children: [
+                    _buildHeader(context),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            calendarAsync.when(
+                              loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
+                              error: (err, _) => Text('Calendar Error: $err'),
+                              data: (calendarData) => _buildCalendarStrip(calendarData),
+                            ),
+                            const SizedBox(height: 24),
+                            _buildTrackerCard(context, currentDay, cycleLength, periodLength),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTrackerCard(BuildContext context) {
+  Widget _buildTrackerCard(BuildContext context, int currentDay, int cycleLength, int periodLength) {
+    // Medically accurate calculation
+    // Ovulation is typically 14 days before the next period
+    final ovulationDay = cycleLength - 14;
+    // Fertile window is generally 5 days before ovulation + ovulation day + 1 day after
+    final fertileStart = ovulationDay - 5;
+    final fertileEnd = ovulationDay + 1;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(24),
@@ -68,54 +97,50 @@ class FlowTrackerPage extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          // Legend
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildLegendItem('Period', const Color(0xFFFF005C)), // Pink
-              const SizedBox(width: 12),
-              _buildLegendItem('Fertile', const Color(0xFF5D5F9E)), // Purple
-              const SizedBox(width: 12),
-              _buildLegendItem('Luteal', const Color(0xFFF9C9DC)), // Light Pink/Purple
+              _buildLegendItem('Period', const Color(0xFFFF005C)), 
+              const SizedBox(width: 8),
+              _buildLegendItem('Follicular', const Color(0xFFE0E0E0)), 
+              const SizedBox(width: 8),
+              _buildLegendItem('Fertile', const Color(0xFF5D5F9E)), 
+              const SizedBox(width: 8),
+              _buildLegendItem('Luteal', const Color(0xFFF9C9DC)), 
             ],
           ),
           const SizedBox(height: 8),
 
-          // Circular Tracker (Animated)
-          const AnimatedCycleTracker(
-            currentDay: 21,
-            periodLength: 5,
-            fertileEnd: 16,
+          AnimatedCycleTracker(
+            currentDay: currentDay,
+            periodLength: periodLength,
+            fertileStart: fertileStart,
+            fertileEnd: fertileEnd,
           ),
-          // Week Indicator Button
           Transform.translate(
             offset: const Offset(0, -25),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE8B6CC)),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFE8B6CC).withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  )
-                ]
-              ),
-              child: const Text('Week 21', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: _buildCycleStatus(
+              currentDay, 
+              periodLength, 
+              fertileStart, 
+              fertileEnd, 
+              cycleLength
             ),
           ),
           
-          // Timeline Visualization
           Transform.translate(
             offset: const Offset(0, -35),
             child: SizedBox(
                height: 80,
                width: double.infinity,
                child: CustomPaint(
-                 painter: TimelinePainter(),
+                 painter: TimelinePainter(
+                   cycleLength: cycleLength,
+                   periodLength: periodLength,
+                   fertileStart: fertileStart,
+                   fertileEnd: fertileEnd,
+                   currentDay: currentDay,
+                 ),
                ),
             ),
           )
@@ -144,75 +169,101 @@ class FlowTrackerPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildCalendarStrip() {
+  Widget _buildCalendarStrip(Map<String, dynamic> calendarData) {
+    // 1. Get raw days
+    final List<dynamic> allDays = calendarData['days'] as List<dynamic>? ?? [];
+    if (allDays.isEmpty) return const SizedBox.shrink();
+
+    // 2. Filter Logic: Find Period Days
+    List<int> periodIndices = [];
+    for (int i = 0; i < allDays.length; i++) {
+        if (allDays[i]['isPeriod'] == true) {
+            periodIndices.add(i);
+        }
+    }
+
+    int start = 0;
+    int end = allDays.length - 1;
+
+    // 3. Determine Range (Buffer +/- 4 days)
+    if (periodIndices.isNotEmpty) {
+        start = (periodIndices.first - 4).clamp(0, allDays.length - 1);
+        end = (periodIndices.last + 4).clamp(0, allDays.length - 1);
+    } else {
+        // Fallback: Center around Today
+        final now = DateTime.now();
+        int todayIndex = -1;
+        for(int i=0; i<allDays.length; i++) {
+            if (DateUtils.isSameDay(DateTime.parse(allDays[i]['date']), now)) {
+                todayIndex = i;
+                break;
+            }
+        }
+        
+        if (todayIndex != -1) {
+             start = (todayIndex - 4).clamp(0, allDays.length - 1);
+             end = (todayIndex + 4).clamp(0, allDays.length - 1);
+        } else {
+            // Default to start of month if today not found (unlikely unless next/prev month logic exists)
+            start = 0;
+            end = math.min(8, allDays.length - 1);
+        }
+    }
+
+    final daysToShow = allDays.sublist(start, end + 1);
+
+    // 4. Render Horizontal List
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Date Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                '20 January, 2026',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              // Expand Icon
-              Icon(Icons.keyboard_arrow_up_rounded, color: Colors.grey.shade600),
-            ],
+          child: Text(
+            DateFormat('MMMM yyyy').format(DateTime.now()),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
           ),
         ),
         
-        // Month Grid
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: [
-              // Week Headers
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  _WeekHeader('Sun'),
-                  _WeekHeader('Mon'),
-                  _WeekHeader('Tue'),
-                  _WeekHeader('Wed'),
-                  _WeekHeader('Thu'),
-                  _WeekHeader('Fri'),
-                  _WeekHeader('Sat'),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Days Grid (Jan 2026: 1st is Thursday)
-              // Row 1 (Week 1)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                   _DayPlaceholder(), _DayPlaceholder(), _DayPlaceholder(), _DayPlaceholder(),
-                  _buildCalendarDayNew('1', true), // 1st Selected
-                  _buildCalendarDayNew('2', false),
-                  _buildCalendarDayNew('3', false),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Row 2 (Week 2)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildCalendarDayNew('4', false), _buildCalendarDayNew('5', false), _buildCalendarDayNew('6', false),
-                  _buildCalendarDayNew('7', false), _buildCalendarDayNew('8', false), _buildCalendarDayNew('9', false), _buildCalendarDayNew('10', false),
-                ],
-              ),
-            ],
-          ),
+        SizedBox(
+            height: 80, // Height for Day Name + Date Bubble
+            child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: daysToShow.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                    final dayData = daysToShow[index];
+                    final date = DateTime.parse(dayData['date'].toString());
+                    final isSelected = dayData['isPeriod'] == true;
+                    final isToday = DateUtils.isSameDay(date, DateTime.now());
+                    
+                    return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                            Text(
+                                DateFormat('E').format(date), // Mon, Tue
+                                style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500
+                                ),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildCalendarDayNew(date.day.toString(), isSelected, isToday: isToday),
+                        ],
+                    );
+                },
+            ),
         ),
       ],
     );
   }
+
+  // Removed _buildDynamicGrid as it's no longer needed for this strip view
 
   Widget _buildCalendarDayNew(String date, bool isSelected, {bool isToday = false}) {
     return Stack(
@@ -320,94 +371,215 @@ class FlowTrackerPage extends ConsumerWidget {
       ),
     );
   }
+
+  Widget _buildCycleStatus(int currentDay, int periodLength, int fertileStart, int fertileEnd, int cycleLength) {
+    String title = "";
+    String subtitle = "";
+
+    if (currentDay <= periodLength) {
+      title = "Period";
+      int daysLeft = periodLength - currentDay;
+      subtitle = "Day $currentDay • ${daysLeft == 0 ? 'Last day' : '$daysLeft days left'}";
+    } else if (currentDay < fertileStart) {
+      title = "Follicular Phase";
+      int daysUntilFertile = fertileStart - currentDay;
+      subtitle = "$daysUntilFertile days until fertile window";
+    } else if (currentDay >= fertileStart && currentDay <= fertileEnd) {
+      title = "Fertile Window";
+      // Ovulation is fertileEnd - 1 typically (start, ..., ov, end)
+      // Actually fertileEnd is ovulation + 1. So Ovulation = fertileEnd - 1.
+      int ovulationDay = fertileEnd - 1;
+      if (currentDay == ovulationDay) {
+        subtitle = "Ovulation Day 🥚";
+      } else {
+        subtitle = "High chance of pregnancy";
+      }
+    } else if (currentDay <= cycleLength) {
+      title = "Luteal Phase";
+      int daysUntilPeriod = cycleLength - currentDay;
+      subtitle = "$daysUntilPeriod days until next period";
+    } else {
+      title = "Late";
+      int daysLate = currentDay - cycleLength;
+      subtitle = "Period is $daysLate days late";
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE8B6CC)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFE8B6CC).withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ]
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold, 
+              fontSize: 16,
+              color: Color(0xFFC06C84), // Deep Pink/Red
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle, 
+            style: TextStyle(
+              fontWeight: FontWeight.w500, 
+              fontSize: 12,
+              color: Colors.grey.shade700
+            )
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class TimelinePainter extends CustomPainter {
+  final int cycleLength;
+  final int periodLength;
+  final int fertileStart;
+  final int fertileEnd;
+  final int currentDay;
+
+  TimelinePainter({
+    required this.cycleLength,
+    required this.periodLength,
+    required this.fertileStart,
+    required this.fertileEnd,
+    required this.currentDay,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
-    // 1. Curved Line (Split into two colors)
-    final pinkPaint = Paint()
-      ..color = const Color(0xFFFF005C) // Pink
+    // 1. Define Paint Styles
+    final activePaint = Paint()
+      ..color = const Color(0xFFFF005C) // Hot Pink (Active)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round;
-      
-    final lightPinkPaint = Paint()
-      ..color = const Color(0xFFF9C9DC) // Light Pink
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
+      ..strokeWidth = 6 // Thicker line as per design
       ..strokeCap = StrokeCap.round;
 
-    // Split point calculations (De Casteljau's algorithm for t=0.5)
-    // P0=(0,20), P1=(w/2, h+20), P2=(w,20)
-    // Q0 = (w/4, 20 + h/2)
-    // B  = (w/2, 20 + h/2)
-    // Q1 = (3w/4, 20 + h/2)
-    
-    double midY = 20 + size.height / 2;
-    
-    // Left Path (Start to Center)
-    final path1 = Path();
-    path1.moveTo(0, 20);
-    path1.quadraticBezierTo(
-      size.width * 0.25, midY, 
-      size.width * 0.5, midY
-    );
-    canvas.drawPath(path1, pinkPaint);
-    
-    // Right Path (Center to End)
-    final path2 = Path();
-    path2.moveTo(size.width * 0.5, midY); // Start from center
-    path2.quadraticBezierTo(
-      size.width * 0.75, midY, 
-      size.width, 20
-    );
-    canvas.drawPath(path2, lightPinkPaint);
+    final inactivePaint = Paint()
+      ..color = const Color(0xFFF9C9DC) // Pale Pink (Inactive)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6
+      ..strokeCap = StrokeCap.round;
 
-    // 2. Dots on the line
-    final dotPaint = Paint()
-      ..style = PaintingStyle.fill;
-      
-    // _getYOnCurve: y(t) = 20 + 2h(t - t^2) where t = x / width
-    double getY(double x) {
-      double t = x / size.width;
-      return 20 + 2 * size.height * (t - t * t);
+    // 2. Define Curve Geometry (Quadratic Bezier)
+    // Start (0, 20), Control (w/2, h+40), End (w, 20)
+    // Simple smile curve
+    final path = Path();
+    path.moveTo(0, 20);
+    path.quadraticBezierTo(size.width / 2, size.height + 40, size.width, 20);
+
+    // 3. Draw Base Line (Inactive Color)
+    canvas.drawPath(path, inactivePaint);
+
+    // 4. Draw Active Progress Line (Active Color)
+    // Calculate progress (0.0 to 1.0)
+    double progress = currentDay / cycleLength;
+    if (progress > 1.0) progress = 1.0;
+    if (progress < 0.0) progress = 0.0;
+
+    // Use PathMetrics to extract sub-path for progress
+    final metrics = path.computeMetrics().toList();
+    if (metrics.isNotEmpty) {
+      final metric = metrics.first;
+      final extractPath = metric.extractPath(0, metric.length * progress);
+      canvas.drawPath(extractPath, activePaint);
     }
+
+    // 5. Draw Checkpoint Dots matching Phase Transitions
+    // Days to mark: Start(1), EndPeriod, StartFertile, EndFertile, EndCycle
+    final List<int> milestoneDays = [
+      1,
+      periodLength,
+      fertileStart,
+      fertileEnd,
+      cycleLength
+    ];
+
+    final dotPaintActive = Paint()..color = const Color(0xFFFF005C)..style = PaintingStyle.fill;
+    final dotPaintInactive = Paint()..color = const Color(0xFFF9C9DC)..style = PaintingStyle.fill;
+
+    for (int day in milestoneDays) {
+      // Clamp day to valid range just in case
+      if (day < 1) day = 1; 
+      if (day > cycleLength) day = cycleLength;
+
+      double t = day / cycleLength;
+      Offset pos = _calculateQuadraticBezierPoint(t, size.width, size.height);
       
-    // Helper to draw dots along the curve (dynamically calculated positions)
-    _drawTimelineDot(canvas, Offset(20, getY(20)), 6, const Color(0xFFFF005C), dotPaint);
-    _drawTimelineDot(canvas, Offset(size.width * 0.25, getY(size.width * 0.25)), 8, const Color(0xFFFF005C), dotPaint);
-    
-    // Central active dot (dashed ring)
-    _drawActiveDot(canvas, Offset(size.width * 0.5, getY(size.width * 0.5)), dotPaint);
-    
-    _drawTimelineDot(canvas, Offset(size.width * 0.75, getY(size.width * 0.75)), 6, const Color(0xFFF8BBD0), dotPaint); // Light pink
-    _drawTimelineDot(canvas, Offset(size.width - 20, getY(size.width - 20)), 6, const Color(0xFFF8BBD0), dotPaint);
+      bool isActive = t <= progress;
+      canvas.drawCircle(pos, 6, isActive ? dotPaintActive : dotPaintInactive);
+    }
+
+    // 6. Draw Current Day Indicator (The "Burst" Circle)
+    Offset indicatorPos = _calculateQuadraticBezierPoint(progress, size.width, size.height);
+    _drawBurstIndicator(canvas, indicatorPos);
   }
-  
-  void _drawTimelineDot(Canvas canvas, Offset center, double radius, Color color, Paint paint) {
-    canvas.drawCircle(center, radius, paint..color = color);
+
+  Offset _calculateQuadraticBezierPoint(double t, double w, double h) {
+    // P0=(0,20), P1=(w/2, h+40), P2=(w,20)
+    double u = 1 - t;
+    double tt = t * t;
+    double uu = u * u;
+
+    double p0x = 0;
+    double p0y = 20;
+
+    double p1x = w / 2;
+    double p1y = h + 40; 
+
+    double p2x = w;
+    double p2y = 20;
+
+    double x = uu * p0x + 2 * u * t * p1x + tt * p2x;
+    double y = uu * p0y + 2 * u * t * p1y + tt * p2y;
+
+    return Offset(x, y);
   }
-  
-  void _drawActiveDot(Canvas canvas, Offset center, Paint paint) {
-    // Outer dashed/dotted ring
-    final ringPaint = Paint()
-      ..color = const Color(0xFFFF005C)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2; // Dotted effect would need PathDashPathEffect
-      
-    canvas.drawCircle(center, 18, ringPaint);
+
+  void _drawBurstIndicator(Canvas canvas, Offset center) {
+    // Inner filled circle
+    final fillPaint = Paint()..color = const Color(0xFFFF005C)..style = PaintingStyle.fill;
+    canvas.drawCircle(center, 14, fillPaint);
+
+    // White Tick Marks ("Sunburst")
+    final tickPaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+
+    final double radius = 8.0;
+    final int tickCount = 8;
     
-    // Inner filled dot
-    paint.color = const Color(0xFFFF005C);
-    canvas.drawCircle(center, 10, paint);
-    
-    // Icon inside
-    // (Optional: draw icon manually or assume it's small enough not to need text)
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    for (int i = 0; i < tickCount; i++) {
+        canvas.drawLine(const Offset(0, -4), const Offset(0, -9), tickPaint);
+        canvas.rotate(2 * math.pi / tickCount);
+    }
+    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant TimelinePainter oldDelegate) {
+     return oldDelegate.currentDay != currentDay || 
+            oldDelegate.cycleLength != cycleLength ||
+            oldDelegate.periodLength != periodLength ||
+            oldDelegate.fertileStart != fertileStart ||
+            oldDelegate.fertileEnd != fertileEnd;
+  }
 }
 
 class CycleTrackerPainter extends CustomPainter {
@@ -441,63 +613,86 @@ class CycleTrackerPainter extends CustomPainter {
     // We start at -90 degrees (12 o'clock)
     const double startAngleOffset = -1.5708; // -90 degrees in radians
 
-    // 0. Background Track (Removed per request)
-    // _drawTrack(canvas, center, radius * 0.9, strokeWidth);
-
-    // 4. Background Track (Optional, for continuity - animated)
-    // if (animationProgress > 0) {
-    //   _drawTrack(canvas, center, radius * 0.62, strokeWidth);
-    // }
-
     // GAP Config
-    // With StrokeCap.round, the "visual" gap needs to be larger than the mathematical gap
-    // because the rounded ends extend beyond the sweep.
-    final double gapRadians = _degreesToRadians(15); 
+    // StrokeWidth is 24. Radius is ~width/2 * 0.74. 
+    // visual cap width is approx 7-8 degrees. 
+    // To ensure a visual gap, we need gapRadians > 2 * capWidth ~ 15 degrees.
+    final double gapRadians = _degreesToRadians(16); 
 
-    // 1. Period Arc (Pink)
+    // --- 1. Period Arc (Pink) ---
     final periodSweep = _daysToRadians(periodLength.toDouble(), degreesPerDay);
-    
-    // Animate Sweep: We multiply the sweep by progress.
-    // However, for individual segments to "grow" sequentially or together? 
-    // Simply scaling all of them by progress is easiest for "Entrance".
-    
-    _drawArc(canvas, center, radius * 0.74, startAngleOffset, (periodSweep - gapRadians) * animationProgress, const Color(0xFFFF005C), strokeWidth);
+    _drawArc(canvas, center, radius * 0.74, startAngleOffset, periodSweep, gapRadians, const Color(0xFFFF005C), strokeWidth);
 
-    // 2. Fertile/Follicular Window Arc (Purple)
-    // Start after Period + Gap
-    double segment2StartAngle = startAngleOffset + periodSweep; 
-    double segment2Days = (fertileEnd - periodLength).toDouble(); 
-    double segment2Sweep = _daysToRadians(segment2Days, degreesPerDay);
-    
-    _drawArc(canvas, center, radius * 0.74, segment2StartAngle, (segment2Sweep - gapRadians) * animationProgress, const Color(0xFF5D5F9E), strokeWidth);
+    // --- 2. Follicular (Infertile) Phase ---
+    // From End of Period to Start of Fertile Window
+    double follicularStartAngle = startAngleOffset + periodSweep;
+    double follicularDays = (fertileStart - periodLength).toDouble();
+    if (follicularDays > 0) {
+      double follicularSweep = _daysToRadians(follicularDays, degreesPerDay);
+       _drawArc(canvas, center, radius * 0.74, follicularStartAngle, follicularSweep, gapRadians, const Color(0xFFE0E0E0), strokeWidth);
+    }
 
-    // 3. Luteal Phase (Light Pink/Purple)
-    // Start after Fertile + Gap
-    double segment3StartAngle = segment2StartAngle + segment2Sweep;
-    double segment3Days = (cycleLength - fertileEnd).toDouble();
-    double segment3Sweep = _daysToRadians(segment3Days, degreesPerDay);
+    // --- 3. Fertile Window (Purple) ---
+    double fertileStartAngle = startAngleOffset + _daysToRadians(fertileStart.toDouble(), degreesPerDay); 
+    double fertileDays = (fertileEnd - fertileStart).toDouble();
+    double fertileSweep = _daysToRadians(fertileDays, degreesPerDay);
     
-    _drawArc(canvas, center, radius * 0.74, segment3StartAngle, (segment3Sweep - gapRadians) * animationProgress, const Color(0xFFF9C9DC), strokeWidth); 
+    _drawArc(canvas, center, radius * 0.74, fertileStartAngle, fertileSweep, gapRadians, const Color(0xFF5D5F9E), strokeWidth);
 
-    // 5. Current Day Indicator (Only show if animation is near completion)
+    // --- 4. Luteal Phase (Light Pink/Purple) ---
+    double lutealStartAngle = startAngleOffset + _daysToRadians(fertileEnd.toDouble(), degreesPerDay);
+    double lutealDays = (cycleLength - fertileEnd).toDouble();
+    double lutealSweep = _daysToRadians(lutealDays, degreesPerDay);
+    
+    _drawArc(canvas, center, radius * 0.74, lutealStartAngle, lutealSweep, gapRadians, const Color(0xFFF9C9DC), strokeWidth); 
+
+    // 5. Current Day Indicator
     if (animationProgress > 0.8) {
-      // Fade in effect simulated by opacity or just draw it
-       double currentDayAngle = startAngleOffset + _daysToRadians(currentDay.toDouble(), degreesPerDay);
+       double effectiveDay = currentDay.toDouble();
+       if (effectiveDay > cycleLength) effectiveDay = cycleLength.toDouble();
+       
+       double currentDayAngle = startAngleOffset + _daysToRadians(effectiveDay, degreesPerDay);
        _drawCurrentDayIndicator(canvas, center, radius * 0.74, currentDayAngle);
     }
   }
 
-  void _drawArc(Canvas canvas, Offset center, double radius, double start, double sweep, Color color, double width) {
+  void _drawArc(Canvas canvas, Offset center, double radius, double start, double totalSweep, double gap, Color color, double width) {
+    // We want the visual arc to be inside 'totalSweep'.
+    // With Round Caps, the visual arc extends beyond the path by (width/2) roughly.
+    // So we subtract gap.
+    
+    double drawSweep = totalSweep - gap;
+    
+    // Safety check for very short phases
+    // If a phase is shorter than the gap (e.g. 1 day vs 16 deg gap), 
+    // we still might want to show *something* (a dot) or nothing?
+    // User wants "phases", usually distinct.
+    if (drawSweep <= 0.01) {
+        // If it's too small, maybe just draw a tiny dot?
+        // Or if it's 0 days, don't draw.
+        // If it's 1 day but gap eats it, force a minimal sweep?
+        if (totalSweep > 0.01) drawSweep = 0.01; 
+        else return;
+    }
+    
+    // We also need to center the arc within the allotted "totalSweep"?
+    // Currently logic: Start + (Sweep-Gap).
+    // The previous logic was: Start, draw (Sweep-Gap).
+    // This leaves the gap at the END of the segment.
+    // This implies Segment A ends at X - gap. Segment B starts at X. 
+    // Distance (X - gap) to X is 'gap'.
+    // If gap is large, visual gap appears.
+    
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round // Rounded ends
+      ..strokeCap = StrokeCap.round
       ..strokeWidth = width;
 
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
-      start,
-      sweep,
+      start, // Starts at the mathematical boundary
+      drawSweep, // Ends 'gap' before the next boundary
       false,
       paint,
     );
@@ -552,12 +747,14 @@ class CycleTrackerPainter extends CustomPainter {
 class AnimatedCycleTracker extends StatefulWidget {
   final int currentDay;
   final int periodLength;
+  final int fertileStart;
   final int fertileEnd;
 
   const AnimatedCycleTracker({
     super.key,
     required this.currentDay,
     required this.periodLength,
+    required this.fertileStart,
     required this.fertileEnd,
   });
 
@@ -638,7 +835,7 @@ class _AnimatedCycleTrackerState extends State<AnimatedCycleTracker> with Ticker
               clipBehavior: Clip.none, // Allow lottie overflow
               children: [
                 // 1. Central Image
-                _buildDynamicCenterImage(widget.currentDay, widget.periodLength, widget.fertileEnd),
+                _buildDynamicCenterImage(widget.currentDay, widget.periodLength, widget.fertileStart, widget.fertileEnd),
 
                 // 2. Custom Painter (Animated Sweep)
                 CustomPaint(
@@ -646,6 +843,7 @@ class _AnimatedCycleTrackerState extends State<AnimatedCycleTracker> with Ticker
                   painter: CycleTrackerPainter(
                     currentDay: widget.currentDay,
                     periodLength: widget.periodLength,
+                    fertileStart: widget.fertileStart,
                     fertileEnd: widget.fertileEnd,
                     animationProgress: _entranceAnimation.value,
                     pulseProgress: _pulseAnimation.value, // Pass pulse
@@ -659,18 +857,19 @@ class _AnimatedCycleTrackerState extends State<AnimatedCycleTracker> with Ticker
     );
   }
 
-  Widget _buildDynamicCenterImage(int currentDay, int periodLength, int fertileEnd) {
+  Widget _buildDynamicCenterImage(int currentDay, int periodLength, int fertileStart, int fertileEnd) {
     // Determine Phase & Visuals
     Color overlayColor = Colors.transparent;
 
     if (currentDay <= periodLength) {
       // Period
       overlayColor = Colors.white.withOpacity(0.4);
-    } else if (currentDay > periodLength && currentDay <= fertileEnd) {
-      // Fertile
+    } else if (currentDay >= fertileStart && currentDay <= fertileEnd) {
+      // Fertile Window (Purple)
       overlayColor = Colors.blue.shade900.withOpacity(0.3);
     } else {
-      // Luteal
+      // Unspecified / Follicular / Luteal (Default)
+      // You could add a specific overlay for Follicular if desired, but transparent is cleaner for "normal" days
       overlayColor = Colors.transparent;
     }
 
@@ -724,6 +923,8 @@ class _AnimatedCycleTrackerState extends State<AnimatedCycleTracker> with Ticker
       ),
     );
   }
+
+
 }
 
 class _WeekHeader extends StatelessWidget {

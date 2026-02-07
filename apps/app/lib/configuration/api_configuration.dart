@@ -13,8 +13,10 @@ class ApiConfiguration {
   const ApiConfiguration();
 
   String get baseUrl {
-    // Use localhost for all platforms (requires `adb reverse tcp:3000 tcp:3000` on Android)
-    // This allows sharing cookies (like auth state) between the app/webview and the server.
-    return 'http://localhost:3000';
+    // With adb reverse tcp:3000 tcp:3000, Android can access 127.0.0.1 directly.
+    // This ensures cookies match the server domain.
+    String url = 'http://127.0.0.1:3000';
+    debugPrint('ApiConfiguration: Using baseUrl: $url');
+    return url;
   }
 }

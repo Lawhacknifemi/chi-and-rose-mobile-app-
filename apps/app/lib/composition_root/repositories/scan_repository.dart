@@ -40,16 +40,29 @@ class ScanRepository {
         body: jsonEncode({'barcode': barcode}),
       );
 
+      debugPrint('Scan Response Status: ${response.statusCode}');
+      debugPrint('Scan Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['result'] ?? data;
+        
+        // Handle {"json": ...} structure
+        if (data is Map<String, dynamic> && data.containsKey('json')) {
+            return data['json'];
+        }
+
+        // Handle {"result": {"data": ...}} structure (standard TRPC)
+        final result = data['result'];
+        if (result is Map<String, dynamic> && result.containsKey('data')) {
+            return result['data'];
+        }
+        
+        return result ?? data;
       } else {
-        debugPrint('Failed to scan barcode: ${response.body}');
-        return null;
+        throw Exception('Failed to scan barcode: ${response.statusCode} ${response.body}');
       }
     } catch (e) {
-      debugPrint('Error scanning barcode: $e');
-      return null;
+      throw Exception('Error scanning barcode: $e');
     }
   }
 
@@ -135,6 +148,55 @@ class ScanRepository {
       }
     } catch (e) {
       debugPrint('Error getting product details: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> detectBarcodeFromImage(File image) async {
+    final token = await _token;
+    if (token == null) return null;
+
+    try {
+      final bytes = await image.readAsBytes();
+      final base64Image = base64Encode(bytes);
+      
+      final url = Uri.parse('$_baseUrl/rpc/scanner/detectBarcode');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+        body: jsonEncode({'imageBase64': base64Image}),
+      );
+
+      debugPrint('Detect Barcode Response: ${response.statusCode} ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Handle standard TRPC/RPC wrapping
+        Map<String, dynamic>? result;
+        if (data is Map<String, dynamic>) {
+           if (data.containsKey('result')) {
+               // Usually RPC returns { result: { data: ... } }
+               final r = data['result'];
+               if (r is Map && r.containsKey('data')) {
+                 result = r['data'];
+               } else {
+                 result = r;
+               }
+           } else if (data.containsKey('json')) {
+               result = data['json'];
+           } else {
+               result = data;
+           }
+        }
+        
+        if (result != null && result['found'] == true) {
+             return result;
+        }
+        return null;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error detecting barcode from image: $e');
       return null;
     }
   }

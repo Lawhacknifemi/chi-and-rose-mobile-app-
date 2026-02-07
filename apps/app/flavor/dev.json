@@ -1,7 +1,7 @@
 {
   "flavor": "dev",
   "appName": "Chi & Rose (dev)",
-  "appIdAndroid": "jp.co.yumemi.template",
-  "appIdIos": "jp.co.yumemi.template",
+  "appIdAndroid": "online.ship10x.chirose",
+  "appIdIos": "online.ship10x.chirose",
   "appIdSuffix": ".dev"
 }
