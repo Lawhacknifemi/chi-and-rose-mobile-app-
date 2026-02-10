@@ -509,4 +509,30 @@ class HealthRepository {
       return 'Sorry, I encountered an error. Please try again.';
     }
   }
+
+  Future<String> getIntro() async {
+    final token = await _token;
+    if (token == null) return '';
+
+    try {
+      final url = Uri.parse('$_baseUrl/rpc/health/getIntro');
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'json': {}}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['result'] ?? data['json'] ?? '';
+      }
+      return '';
+    } catch (e) {
+      debugPrint('Error in AI getIntro: $e');
+      return '';
+    }
+  }
 }

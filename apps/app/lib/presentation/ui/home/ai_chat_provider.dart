@@ -65,6 +65,27 @@ class AiChat extends _$AiChat {
     }
   }
 
+  Future<void> loadIntro() async {
+    // Only load intro if the chat is empty
+    if (state.isNotEmpty) return;
+
+    try {
+      final repository = ref.read(healthRepositoryProvider);
+      final response = await repository.getIntro();
+      
+      if (response.isNotEmpty) {
+        final introMessage = AiChatMessage(
+          content: response,
+          isUser: false,
+          timestamp: DateTime.now(),
+        );
+        state = [introMessage];
+      }
+    } catch (e) {
+      debugPrint('Error loading AI intro: $e');
+    }
+  }
+
   void clearChat() {
     state = [];
   }

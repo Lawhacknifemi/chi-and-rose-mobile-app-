@@ -15,6 +15,15 @@ class _AiChatBottomSheetState extends ConsumerState<AiChatBottomSheet> {
   bool _isSending = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Fetch personalized intro on open
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(aiChatProvider.notifier).loadIntro();
+    });
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
