@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internal_design_ui/i18n.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_app/presentation/ui/home/widgets/ai_chat_bottom_sheet.dart';
 
 import 'package:flutter/services.dart'; // For HapticFeedback
 
@@ -18,6 +19,23 @@ class MainPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       extendBody: true,
+      floatingActionButton: navigationShell.currentIndex == 0 ? Padding(
+        padding: const EdgeInsets.only(bottom: 80), // Anchor it above the floating nav bar
+        child: FloatingActionButton(
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => const AiChatBottomSheet(),
+            );
+          },
+          mini: false, // Standard size
+          backgroundColor: const Color(0xFF8E2463),
+          child: const Icon(Icons.auto_awesome, color: Colors.white),
+        ),
+      ) : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: navigationShell,
       bottomNavigationBar: Container(
         margin: const EdgeInsets.fromLTRB(24, 0, 24, 16), // Increased side margin for smaller look

@@ -43,28 +43,31 @@ class FlowTrackerPage extends ConsumerWidget {
                   errorBuilder: (_, __, ___) => Container(color: Colors.white),
                 ),
               ),
-              SafeArea(
-                child: Column(
-                  children: [
-                    _buildHeader(context),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            calendarAsync.when(
-                              loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
-                              error: (err, _) => Text('Calendar Error: $err'),
-                              data: (calendarData) => _buildCalendarStrip(calendarData),
-                            ),
-                            const SizedBox(height: 24),
-                            _buildTrackerCard(context, currentDay, cycleLength, periodLength),
-                            const SizedBox(height: 24),
-                          ],
-                        ),
+              Column(
+                children: [
+                  SafeArea(
+                    bottom: false,
+                    child: _buildHeader(context),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          calendarAsync.when(
+                            loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
+                            error: (err, _) => Text('Calendar Error: $err'),
+                            data: (calendarData) => _buildCalendarStrip(calendarData),
+                          ),
+                          const SizedBox(height: 24),
+                          _buildTrackerCard(context, currentDay, cycleLength, periodLength),
+                          const SizedBox(height: 24),
+                          // Add bottom padding for edge-to-edge
+                          SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           );

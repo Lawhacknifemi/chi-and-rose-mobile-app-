@@ -28,6 +28,8 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // Background Image
@@ -59,43 +61,47 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Back Button (Moved inside)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton.icon(
-                        onPressed: () => context.pop(),
-                        icon: const Icon(Icons.arrow_back_ios, size: 16, color: Color(0xFFC2185B)),
-                        label: const Text(
-                          'Back to login',
-                          style: TextStyle(
-                            color: Color(0xFFC2185B),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                child: SafeArea(
+                  top: false,
+                  bottom: true,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Back Button (Moved inside)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: () => context.pop(),
+                          icon: const Icon(Icons.arrow_back_ios, size: 16, color: Color(0xFFC2185B)),
+                          label: const Text(
+                            'Back to login',
+                            style: TextStyle(
+                              color: Color(0xFFC2185B),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            alignment: Alignment.centerLeft,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                         ),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          alignment: Alignment.centerLeft,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      const SizedBox(height: 24),
+    
+                      // Title
+                      const Text(
+                        'Sign up',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF880E4F), // Maroon
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 32),
 
-                    // Title
-                    const Text(
-                      'Sign up',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF880E4F), // Maroon
-                      ),
-                    ),
-                    const SizedBox(height: 32),
 
                     // Social Buttons
                     _buildSocialButton(
@@ -229,10 +235,11 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildSocialButton({
     required String asset,

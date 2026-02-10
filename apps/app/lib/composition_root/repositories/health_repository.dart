@@ -478,4 +478,35 @@ class HealthRepository {
         rethrow;
     }
   }
+
+  Future<String> chat(List<Map<String, String>> messages) async {
+    final token = await _token;
+    if (token == null) throw Exception('Not authenticated');
+
+    try {
+      final url = Uri.parse('$_baseUrl/rpc/health/chat');
+      final body = {
+        'messages': messages,
+      };
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'json': body}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['result'] ?? data['json'] ?? 'No response from AI';
+      } else {
+        throw Exception('Failed to get AI response: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error in AI chat: $e');
+      return 'Sorry, I encountered an error. Please try again.';
+    }
+  }
 }

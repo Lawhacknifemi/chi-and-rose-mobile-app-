@@ -18,7 +18,7 @@ class AppBackground extends StatelessWidget {
         // Background color
         Container(
           decoration: const BoxDecoration(
-            color: Color(0xFFFFFBFC),
+            color: Colors.black,
           ),
         ),
         // Topographic pattern overlay

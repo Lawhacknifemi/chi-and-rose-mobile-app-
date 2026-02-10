@@ -98,6 +98,8 @@ flutter:
     - assets/c1bdd49a-c54a-4c56-9c76-6e8904ff020d.jpeg
     - assets/embryoanimation.json
     - assets/rippleloading.json
+    - assets/onboarding2.json
+    - assets/onboarding3.json
     # End of assets
 
 flutter_launcher_icons:

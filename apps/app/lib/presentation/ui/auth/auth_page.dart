@@ -9,6 +9,8 @@ class AuthPage extends StatelessWidget {
     // 75% of screen height for the sheet, or at least enough to fit content
     // We'll use a Stack where the sheet is pinned to bottom
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // Background Image
@@ -27,13 +29,13 @@ class AuthPage extends StatelessWidget {
           ),
 
           // Header Text
-          const Positioned(
-            top: 100, // Adjust based on safe area
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 40, 
             left: 32,
             right: 32,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: const [
                 Text(
                   'Hello!',
                   style: TextStyle(
@@ -61,7 +63,11 @@ class AuthPage extends StatelessWidget {
             alignment: Alignment.bottomCenter,
             child: SingleChildScrollView(
                // To allow keyboard to push it up
-              child: const LoginForm(),
+              child: SafeArea(
+                top: false,
+                bottom: true, // Respect system navigation bar
+                child: const LoginForm(),
+              ),
             ),
           ),
         ],

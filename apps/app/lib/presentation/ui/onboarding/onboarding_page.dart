@@ -54,95 +54,116 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(
-        opacity: 1.0,
-        child: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              
-              // Top Logo
-              TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(milliseconds: 800),
-                curve: Curves.easeOut,
-                builder: (context, value, child) {
-                  return Opacity(
-                    opacity: value,
-                    child: Transform.translate(
-                      offset: Offset(0, -20 * (1 - value)),
-                      child: child,
+      body: Stack(
+        children: [
+          AppBackground(
+            opacity: 1.0, // Full opacity for the backgrid
+            child: SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  
+                  // Top Logo
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 800),
+                    curve: Curves.easeOut,
+                    builder: (context, value, child) {
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.translate(
+                          offset: Offset(0, -20 * (1 - value)),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: SvgPicture.asset(
+                      'assets/logo.svg',
+                      height: 40,
+                      colorFilter: const ColorFilter.mode(
+                        Colors.white, 
+                        BlendMode.srcIn,
+                      ),
                     ),
-                  );
-                },
-                child: SvgPicture.asset(
-                  'assets/logo.svg',
-                  height: 40,
-                  colorFilter: const ColorFilter.mode(
-                    Colors.white, 
-                    BlendMode.srcIn,
                   ),
-                ),
-              ),
 
-              // PageView
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  onPageChanged: _onPageChanged,
-                  itemCount: onboardingScreens.length,
-                  itemBuilder: (context, index) {
-                    return OnboardingScreen(
-                      content: onboardingScreens[index],
-                      isActive: _currentPage == index,
-                    );
-                  },
-                ),
-              ),
+                  // PageView
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: _onPageChanged,
+                      itemCount: onboardingScreens.length,
+                      itemBuilder: (context, index) {
+                        return OnboardingScreen(
+                          content: onboardingScreens[index],
+                          isActive: _currentPage == index,
+                        );
+                      },
+                    ),
+                  ),
 
-              // Bottom Navigation Bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Skip Button
-                    TextButton(
-                      onPressed: _completeOnboarding,
-                      child: Text(
-                        'Skip',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                  // Bottom Navigation Bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Skip Button
+                        TextButton(
+                          onPressed: _completeOnboarding,
+                          child: Text(
+                            'Skip',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.6),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
 
-                    // Page Indicator
-                    OnboardingPageIndicator(
-                      currentPage: _currentPage,
-                      pageCount: onboardingScreens.length,
-                    ),
-
-                    // Next/Get Started Button
-                    TextButton(
-                      onPressed: _nextPage,
-                      child: Text(
-                        'Next',
-                        style: const TextStyle(
-                          color: Color(0xFFEEA5D9), // Pink color
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        // Page Indicator
+                        OnboardingPageIndicator(
+                          currentPage: _currentPage,
+                          pageCount: onboardingScreens.length,
                         ),
-                      ),
+
+                        // Next/Get Started Button
+                        TextButton(
+                          onPressed: _nextPage,
+                          child: Text(
+                            'Next',
+                            style: const TextStyle(
+                              color: Color(0xFFEEA5D9), // Pink color
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          
+          // Final Layer: Cinematic Vignette (Focuses eye on center)
+          IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.2,
+                  colors: [
+                    Colors.black.withOpacity(0.0),
+                    Colors.black.withOpacity(0.6),
+                  ],
+                  stops: const [0.5, 1.0],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

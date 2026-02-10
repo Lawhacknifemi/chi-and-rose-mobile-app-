@@ -43,6 +43,8 @@ class Assets {
   static const AssetGenImage homeGradientBg = AssetGenImage(
     'assets/home_gradient_bg.png',
   );
+  static const String onboarding2 = 'assets/onboarding2.json';
+  static const String onboarding3 = 'assets/onboarding3.json';
   static const String profile = 'assets/profile.svg';
   static const String rippleloading = 'assets/rippleloading.json';
   static const AssetGenImage splashBackground = AssetGenImage(
@@ -72,6 +74,8 @@ class Assets {
     frame,
     googleIcon,
     homeGradientBg,
+    onboarding2,
+    onboarding3,
     profile,
     rippleloading,
     splashBackground,

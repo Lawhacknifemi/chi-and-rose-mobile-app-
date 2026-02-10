@@ -13,10 +13,13 @@ class ApiConfiguration {
   const ApiConfiguration();
 
   String get baseUrl {
-    // With adb reverse tcp:3000 tcp:3000, Android can access 127.0.0.1 directly.
-    // This ensures cookies match the server domain.
-    String url = 'http://127.0.0.1:3000';
-    debugPrint('ApiConfiguration: Using baseUrl: $url');
-    return url;
+    // Use production server for release builds
+    if (kReleaseMode) return 'https://clownfish-app-t7z9u.ondigitalocean.app';
+    
+    // Use localhost:3000 (Requires: adb reverse tcp:3000 tcp:3000)
+    if (!kIsWeb && Platform.isAndroid) return 'http://localhost:3000';
+    
+    // Other local dev
+    return 'https://clownfish-app-t7z9u.ondigitalocean.app';
   }
 }

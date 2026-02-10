@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
@@ -184,48 +185,100 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Layer 1: Base Blob (Black Background)
-                    if (widget.content.iconBottom != null)
-                      SvgPicture.asset(
-                        widget.content.iconBottom!,
-                        width: 312,
-                        fit: BoxFit.contain,
-                        // Force Black Background to merge with Lottie's black bg
-                        colorFilter: const ColorFilter.mode(
-                          Colors.black, 
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                      
-                    // Layer 2: Lottie (Clipped & Dancing)
-                    ClipPath(
-                      clipper: const BlobClipper(), // Stationary Mask
-                      child: AnimatedBuilder(
-                        animation: _breathingController,
-                        builder: (context, lottieChild) {
-                           // Continuous Dancing (Lissajous Orbit)
-                           // X (1.0) and Y (1.5) frequencies
-                           final double t = _breathingController.value * 4 * math.pi;
-                           // Reduce amplitude to 10 to be safer
-                           final double danceX = 10 * math.sin(t);
-                           final double danceY = 10 * math.cos(t * 1.5);
-
-                           return Transform.translate(
-                             // Adjust vertical offset based on user feedback (from +5 to +15)
-                             offset: Offset(danceX, danceY + 15), 
-                             child: Transform.scale(
-                               scale: 1.1, // Zoom in slightly (110%)
-                               child: lottieChild,
-                              ),
-                           );
-                        },
-                        child: Lottie.asset(
-                          widget.content.lottieAsset!,
+                    // Layer 0: Atmospheric Glow (Backlight) - ONLY in advanced mode
+                    if (widget.content.useAdvancedBlending &&
+                        (widget.content.lottieBlobColor != null || widget.content.secondaryLottieBlobColor != null))
+                      Opacity(
+                        opacity: 0.4 * scale,
+                        child: Container(
                           width: 312,
                           height: 312,
-                          fit: BoxFit.contain, // Prevent zooming/cropping
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: (widget.content.lottieBlobColor ?? widget.content.secondaryLottieBlobColor ?? Colors.black)
+                                    .withOpacity(0.5),
+                                blurRadius: 60,
+                                spreadRadius: 10,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
+
+                    // Layer 1: Base Blob (Gradient or Solid)
+                    if (widget.content.iconBottom != null)
+                      widget.content.secondaryLottieBlobColor != null
+                          ? ShaderMask(
+                              shaderCallback: (bounds) => LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                                colors: [
+                                  widget.content.secondaryLottieBlobColor!,
+                                  widget.content.lottieBlobColor ?? Colors.black,
+                                ],
+                              ).createShader(bounds),
+                              blendMode: BlendMode.srcIn,
+                              child: SvgPicture.asset(
+                                widget.content.iconBottom!,
+                                width: 312,
+                                fit: BoxFit.contain,
+                              ),
+                            )
+                          : SvgPicture.asset(
+                              widget.content.iconBottom!,
+                              width: 312,
+                              fit: BoxFit.contain,
+                              // Force Blob Background to merge with Lottie's background if provided
+                              colorFilter: widget.content.lottieBlobColor != null
+                                  ? ColorFilter.mode(
+                                      widget.content.lottieBlobColor!,
+                                      BlendMode.srcIn,
+                                    )
+                                  : null,
+                            ),
+
+                    // Layer 2: Lottie (Clipped, Danced, and optionally Feathered)
+                    ClipPath(
+                      clipper: const BlobClipper(), // Stationary Mask
+                      child: widget.content.useAdvancedBlending
+                          ? Stack(
+                              children: [
+                                // Base Animation Layer with Ghost Blending (Vignettes + Blur)
+                                ShaderMask(
+                                  shaderCallback: (rect) {
+                                    return const RadialGradient(
+                                      center: Alignment.center,
+                                      radius: 0.6,
+                                      colors: [Colors.black, Colors.transparent],
+                                      stops: [0.1, 1.0],
+                                    ).createShader(rect);
+                                  },
+                                  blendMode: BlendMode.dstIn,
+                                  child: ShaderMask(
+                                    shaderCallback: (rect) {
+                                      return const LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+                                        stops: [0.0, 0.15, 0.85, 1.0],
+                                      ).createShader(rect);
+                                    },
+                                    blendMode: BlendMode.dstIn,
+                                    child: _buildLottieLayer(scale),
+                                  ),
+                                ),
+                                // Subtle Noise Overlay (Premium Texture)
+                                IgnorePointer(
+                                  child: CustomPaint(
+                                    painter: _NoisePainter(),
+                                    size: const Size(312, 312),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : _buildLottieLayer(scale),
                     ),
                   ],
                 ),
@@ -273,10 +326,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 final double slideOffsetX = 200 * (1 - entranceValue);
                 final double slideOffsetY = -200 * (1 - entranceValue);
                 
-                // Continuous Dancing (Lissajous Orbit)
-                // Complex "wandering" path using different frequencies for X and Y
-                // We use 4*pi to ensure both frequencies (1.0 and 1.5) complete full cycles
-                // X (1.0): 2 cycles (4pi). Y (1.5): 3 cycles (6pi). Both end at 0/1 seamless.
                 final double t = _breathingController.value * 4 * math.pi;
                 
                 // X: Slower wide swing (15px)
@@ -365,3 +414,54 @@ class BlobClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
+/// Painter to add a subtle, premium tactile grain texture to the blob area
+class _NoisePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final random = math.Random(42); // Seeded for consistency
+    final paint = Paint()..strokeWidth = 1.0;
+
+    for (var i = 0; i < 1500; i++) {
+      final x = random.nextDouble() * size.width;
+      final y = random.nextDouble() * size.height;
+
+      // Alternate between very faint white and black dots
+      final isWhite = random.nextBool();
+      paint.color = (isWhite ? Colors.white : Colors.black).withOpacity(0.04);
+
+      canvas.drawPoints(ui.PointMode.points, [Offset(x, y)], paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
+  Widget _buildLottieLayer(double popInScale) {
+    return AnimatedBuilder(
+      animation: _breathingController,
+      builder: (context, lottieChild) {
+        // Continuous Dancing (Lissajous Orbit)
+        final double t = _breathingController.value * 4 * math.pi;
+        final double danceX = 10 * math.sin(t);
+        final double danceY = 10 * math.cos(t * 1.5);
+
+        return Transform.translate(
+          // Optional: Re-add subtle Y offset if needed (+15)
+          offset: Offset(danceX, danceY + 15),
+          child: Transform.scale(
+            scale: 1.1, // REVERTED scale back to standard 110%
+            child: lottieChild,
+          ),
+        );
+      },
+      child: Lottie.asset(
+        widget.content.lottieAsset!,
+        width: 312,
+        height: 312,
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+}

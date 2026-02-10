@@ -23,6 +23,22 @@ import 'package:talker_riverpod_logger/talker_riverpod_logger_observer.dart';
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  
+  // Enable edge-to-edge display
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarIconBrightness: Brightness.light,
+      // Disable contrast enforcement to allow true transparency on Android
+      systemStatusBarContrastEnforced: false,
+      systemNavigationBarContrastEnforced: false,
+    ),
+  );
+
   await LocaleSettings.useDeviceLocale();
 
   LicenseRegistry.addLicense(() async* {
@@ -132,35 +148,46 @@ class MainApp extends ConsumerWidget {
       ref.read(forceUpdatePolicyNotifierProvider.notifier).disable();
     });
 
-    return MaterialApp.router(
-      locale: TranslationProvider.of(context).flutterLocale,
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      supportedLocales: AppLocaleUtils.supportedLocales,
-      scaffoldMessengerKey: SnackBarManager.rootScaffoldMessengerKey,
-      builder: enableAccessibilityTools
-          ? (context, child) => AccessibilityTools(child: child)
-          : null,
-      routerConfig: ref.watch(routerProvider),
-      theme: lightTheme(),
-      darkTheme: darkTheme(),
-      themeMode: themeSetting.toThemeMode(),
-      shortcuts: kDebugMode
-          ? {
-              LogicalKeySet(
-                LogicalKeyboardKey.shift,
-                LogicalKeyboardKey.keyD,
-              ): const _DebugIntent(),
-            }
-          : null,
-      actions: kDebugMode
-          ? <Type, Action<Intent>>{
-              _DebugIntent: CallbackAction<_DebugIntent>(
-                onInvoke: (_) => unawaited(
-                  router.push(const DebugPageRoute().location),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemStatusBarContrastEnforced: false,
+        systemNavigationBarContrastEnforced: false,
+      ),
+      child: MaterialApp.router(
+        locale: TranslationProvider.of(context).flutterLocale,
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        supportedLocales: AppLocaleUtils.supportedLocales,
+        scaffoldMessengerKey: SnackBarManager.rootScaffoldMessengerKey,
+        builder: enableAccessibilityTools
+            ? (context, child) => AccessibilityTools(child: child)
+            : null,
+        routerConfig: ref.watch(routerProvider),
+        theme: lightTheme(),
+        darkTheme: darkTheme(),
+        themeMode: themeSetting.toThemeMode(),
+        shortcuts: kDebugMode
+            ? {
+                LogicalKeySet(
+                  LogicalKeyboardKey.shift,
+                  LogicalKeyboardKey.keyD,
+                ): const _DebugIntent(),
+              }
+            : null,
+        actions: kDebugMode
+            ? <Type, Action<Intent>>{
+                _DebugIntent: CallbackAction<_DebugIntent>(
+                  onInvoke: (_) => unawaited(
+                    router.push(const DebugPageRoute().location),
+                  ),
                 ),
-              ),
-            }
-          : null,
+              }
+            : null,
+      ),
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:flutter_app/presentation/ui/home/widgets/wellness_hero_card.dart
 import 'package:flutter_app/presentation/ui/home/widgets/product_card.dart';
 import 'package:flutter_app/presentation/ui/home/widgets/article_card.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_app/presentation/ui/home/widgets/ai_chat_bottom_sheet.dart';
 
 import 'package:flutter_app/presentation/ui/home/home_providers.dart';
 
