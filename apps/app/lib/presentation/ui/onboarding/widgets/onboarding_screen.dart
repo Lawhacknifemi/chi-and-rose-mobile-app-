@@ -239,47 +239,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                   : null,
                             ),
 
-                    // Layer 2: Lottie (Clipped, Danced, and optionally Feathered)
-                    ClipPath(
-                      clipper: const BlobClipper(), // Stationary Mask
-                      child: widget.content.useAdvancedBlending
-                          ? Stack(
-                              children: [
-                                // Base Animation Layer with Ghost Blending (Vignettes + Blur)
-                                ShaderMask(
-                                  shaderCallback: (rect) {
-                                    return const RadialGradient(
-                                      center: Alignment.center,
-                                      radius: 0.6,
-                                      colors: [Colors.black, Colors.transparent],
-                                      stops: [0.1, 1.0],
-                                    ).createShader(rect);
-                                  },
-                                  blendMode: BlendMode.dstIn,
-                                  child: ShaderMask(
-                                    shaderCallback: (rect) {
-                                      return const LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
-                                        stops: [0.0, 0.15, 0.85, 1.0],
-                                      ).createShader(rect);
-                                    },
-                                    blendMode: BlendMode.dstIn,
-                                    child: _buildLottieLayer(scale),
-                                  ),
-                                ),
-                                // Subtle Noise Overlay (Premium Texture)
-                                IgnorePointer(
-                                  child: CustomPaint(
-                                    painter: _NoisePainter(),
-                                    size: const Size(312, 312),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : _buildLottieLayer(scale),
-                    ),
+                    // Layer 2: Lottie (Optionally Clipped, Danced, and optionally Feathered)
+                    _buildLottieWithOptionalClip(scale),
                   ],
                 ),
               ),
@@ -438,6 +399,57 @@ class _NoisePainter extends CustomPainter {
 }
 
 extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
+  Widget _buildLottieWithOptionalClip(double scale) {
+    if (widget.content.iconBottom != null) {
+      return ClipPath(
+        clipper: const BlobClipper(),
+        child: _buildLottieContent(scale),
+      );
+    }
+    return _buildLottieContent(scale);
+  }
+
+  Widget _buildLottieContent(double scale) {
+    if (widget.content.useAdvancedBlending) {
+      return Stack(
+        children: [
+          // Base Animation Layer with Ghost Blending (Vignettes + Blur)
+          ShaderMask(
+            shaderCallback: (rect) {
+              return const RadialGradient(
+                center: Alignment.center,
+                radius: 0.6,
+                colors: [Colors.black, Colors.transparent],
+                stops: [0.1, 1.0],
+              ).createShader(rect);
+            },
+            blendMode: BlendMode.dstIn,
+            child: ShaderMask(
+              shaderCallback: (rect) {
+                return const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+                  stops: [0.0, 0.15, 0.85, 1.0],
+                ).createShader(rect);
+              },
+              blendMode: BlendMode.dstIn,
+              child: _buildLottieLayer(scale),
+            ),
+          ),
+          // Subtle Noise Overlay (Premium Texture)
+          IgnorePointer(
+            child: CustomPaint(
+              painter: _NoisePainter(),
+              size: const Size(312, 312),
+            ),
+          ),
+        ],
+      );
+    }
+    return _buildLottieLayer(scale);
+  }
+
   Widget _buildLottieLayer(double popInScale) {
     return AnimatedBuilder(
       animation: _breathingController,

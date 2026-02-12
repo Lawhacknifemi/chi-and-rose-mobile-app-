@@ -52,7 +52,7 @@ const onboardingScreens = [
     description:
         'Monitor your journey and discover healthier alternatives for the products you use.',
     icon: '📈',
-    iconBottom: 'assets/vector_1.svg',
+    iconBottom: null,
     lottieAsset: 'assets/onboarding_screen3.json',
     lottieBlobColor: Color(0xFFEECADB), // Soft Pink
     secondaryLottieBlobColor: Color(0xFFA0C4FF), // Light Blue (Left)
