@@ -142,6 +142,8 @@ class MainPage extends ConsumerWidget {
               letterSpacing: 0.8,
             ),
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

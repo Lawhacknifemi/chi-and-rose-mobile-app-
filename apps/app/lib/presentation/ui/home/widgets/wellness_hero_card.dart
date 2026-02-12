@@ -18,7 +18,9 @@ class WellnessHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(16.0),
-      height: 200,
+      constraints: const BoxConstraints(
+        minHeight: 180,
+      ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
