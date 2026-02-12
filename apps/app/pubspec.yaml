@@ -101,6 +101,7 @@ flutter:
     - assets/rippleloading.json
     - assets/onboarding2.json
     - assets/onboarding3.json
+    - assets/onboarding_screen3.json
     - assets/cycles.svg
     - assets/community_icon.svg
     - assets/scan_icon.svg
