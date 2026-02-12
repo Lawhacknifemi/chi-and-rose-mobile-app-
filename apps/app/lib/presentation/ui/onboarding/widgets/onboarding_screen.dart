@@ -375,6 +375,20 @@ class BlobClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
+class CircleClipper extends CustomClipper<Path> {
+  const CircleClipper();
+
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.addOval(Rect.fromLTWH(0, 0, size.width, size.height));
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
 /// Painter to add a subtle, premium tactile grain texture to the blob area
 class _NoisePainter extends CustomPainter {
   @override
@@ -401,8 +415,11 @@ class _NoisePainter extends CustomPainter {
 extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
   Widget _buildLottieWithOptionalClip(double scale) {
     if (widget.content.iconBottom != null) {
+      // Special handling for the third screen (Orb Portal)
+      final bool isOrbPortal = widget.content.title == 'Track Your Wellness';
+      
       return ClipPath(
-        clipper: const BlobClipper(),
+        clipper: isOrbPortal ? const CircleClipper() : const BlobClipper(),
         child: _buildLottieContent(scale),
       );
     }
@@ -411,9 +428,31 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
 
   Widget _buildLottieContent(double scale) {
     if (widget.content.useAdvancedBlending) {
+      final bool isOrbPortal = widget.content.title == 'Track Your Wellness';
+
       return Stack(
         alignment: Alignment.center,
         children: [
+          // Layer: Portal Glow (Ensures the edge of the circular boundary is soft)
+          if (isOrbPortal)
+            Opacity(
+              opacity: 0.4 * scale,
+              child: Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: (widget.content.lottieBlobColor ?? const Color(0xFFC06C84)).withOpacity(0.5),
+                      blurRadius: 40,
+                      spreadRadius: 10,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // Layer: Floor Glow (Anchors the animation to the 'ground')
           Opacity(
             opacity: 0.15 * scale,
@@ -433,14 +472,14 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
             ),
           ),
           
-          // Expansive Soft Mask Layer (No physical clip - uses wide fades to erase edges)
+          // Expansive Soft Mask Layer
           ShaderMask(
             shaderCallback: (rect) {
-              return const RadialGradient(
+              return RadialGradient(
                 center: Alignment.center,
                 radius: 1.0,
-                colors: [Colors.black, Colors.transparent],
-                stops: [0.2, 0.9], // Starts fading very early, gone by 90%
+                colors: const [Colors.black, Colors.transparent],
+                stops: isOrbPortal ? const [0.0, 0.85] : const [0.2, 0.9],
               ).createShader(rect);
             },
             blendMode: BlendMode.dstIn,
@@ -450,7 +489,7 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
-                  stops: [0.0, 0.4, 0.6, 1.0], // Extremely soft vertical falloff
+                  stops: [0.0, 0.3, 0.7, 1.0], // Softer vertical fade for the Orb
                 ).createShader(rect);
               },
               blendMode: BlendMode.dstIn,
@@ -475,17 +514,17 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
     return AnimatedBuilder(
       animation: _breathingController,
       builder: (context, lottieChild) {
-        // Continuous Dancing (Lissajous Orbit) - DISABLED for screen 3 (V8)
-        final bool isSpecial = widget.content.iconBottom == null;
+        final bool isOrbPortal = widget.content.title == 'Track Your Wellness';
         
         final double t = _breathingController.value * 4 * math.pi;
-        final double danceX = isSpecial ? 0.0 : 10 * math.sin(t);
-        final double danceY = isSpecial ? 0.0 : 10 * math.cos(t * 1.5);
+        // Subtler movement for the Orb (5px) vs others (10px)
+        final double danceX = isOrbPortal ? 5 * math.sin(t) : 10 * math.sin(t);
+        final double danceY = isOrbPortal ? 5 * math.cos(t * 1.5) : 10 * math.cos(t * 1.5);
 
         return Transform.translate(
-          offset: Offset(danceX, danceY + (isSpecial ? 0 : 15)),
+          offset: Offset(danceX, danceY + (isOrbPortal ? 0 : 15)),
           child: Transform.scale(
-            scale: isSpecial ? 0.85 : 1.1, // Safety Margin: 85% scale to hide edges
+            scale: isOrbPortal ? 0.9 : 1.1, // 90% scale for Orb to stay safely inside portal
             child: lottieChild,
           ),
         );
@@ -494,7 +533,7 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
         widget.content.lottieAsset!,
         width: 312,
         height: 312,
-        fit: widget.content.iconBottom == null ? BoxFit.contain : BoxFit.contain,
+        fit: widget.content.title == 'Track Your Wellness' ? BoxFit.fitWidth : BoxFit.contain,
       ),
     );
   }
