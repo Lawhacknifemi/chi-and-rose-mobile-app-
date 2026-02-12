@@ -84,7 +84,7 @@ class HomePage extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'RECENT SCANS',
+                            'RECENTLY SCANNED',
                             style: GoogleFonts.outfit(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -166,7 +166,7 @@ class HomePage extends ConsumerWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
                       child: Text(
-                        'TIPS & INSIGHTS',
+                        'CURATED FOR YOU',
                         style: GoogleFonts.outfit(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
