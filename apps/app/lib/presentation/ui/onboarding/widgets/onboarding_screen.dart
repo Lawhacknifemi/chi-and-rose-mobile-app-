@@ -440,7 +440,7 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
                 center: Alignment.center,
                 radius: 1.0, // Full width spotlight
                 colors: [Colors.black, Colors.transparent],
-                stops: [0.4, 0.9], // Start fading at 40% center, gone by 90%
+                stops: [0.1, 0.8], // Ultra-convergent: Starts fading from 10% center
               ).createShader(rect);
             },
             blendMode: BlendMode.dstIn,
@@ -475,16 +475,17 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
     return AnimatedBuilder(
       animation: _breathingController,
       builder: (context, lottieChild) {
-        // Continuous Dancing (Lissajous Orbit)
+        // Continuous Dancing (Lissajous Orbit) - DISABLED for screen 3 to prevent edge escape
+        final bool shouldDance = widget.content.iconBottom != null;
+        
         final double t = _breathingController.value * 4 * math.pi;
-        final double danceX = 10 * math.sin(t);
-        final double danceY = 10 * math.cos(t * 1.5);
+        final double danceX = shouldDance ? 10 * math.sin(t) : 0.0;
+        final double danceY = shouldDance ? 10 * math.cos(t * 1.5) : 0.0;
 
         return Transform.translate(
-          // Optional: Re-add subtle Y offset if needed (+15)
-          offset: Offset(danceX, danceY + 15),
+          offset: Offset(danceX, danceY + (shouldDance ? 15 : 0)),
           child: Transform.scale(
-            scale: 1.1, // REVERTED scale back to standard 110%
+            scale: shouldDance ? 1.1 : 1.0, // Reduced scale for screen 3 to keep edges away
             child: lottieChild,
           ),
         );
