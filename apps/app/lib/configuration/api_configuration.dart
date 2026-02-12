@@ -17,7 +17,7 @@ class ApiConfiguration {
     if (kReleaseMode) return 'https://clownfish-app-t7z9u.ondigitalocean.app';
     
     // Use localhost:3000 (Requires: adb reverse tcp:3000 tcp:3000)
-    if (!kIsWeb && Platform.isAndroid) return 'http://localhost:3000';
+    if (!kIsWeb && Platform.isAndroid) return 'https://clownfish-app-t7z9u.ondigitalocean.app';
     
     // Other local dev
     return 'https://clownfish-app-t7z9u.ondigitalocean.app';

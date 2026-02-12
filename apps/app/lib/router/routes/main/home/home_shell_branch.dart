@@ -4,6 +4,11 @@ const homeShellBranch = TypedStatefulShellBranch<HomeShellBranch>(
   routes: <TypedRoute<RouteData>>[
     TypedGoRoute<HomePageRoute>(
       path: HomePageRoute.path,
+      routes: [
+        TypedGoRoute<ProfilePageRoute>(
+          path: ProfilePageRoute.path,
+        ),
+      ],
     ),
   ],
 );

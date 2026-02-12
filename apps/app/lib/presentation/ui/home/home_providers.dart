@@ -29,3 +29,8 @@ Future<Map<String, dynamic>?> articleDetails(ArticleDetailsRef ref, String id) a
   final repository = ref.watch(healthRepositoryProvider);
   return repository.getArticle(id);
 }
+@riverpod
+Future<Map<String, dynamic>?> userProfile(UserProfileRef ref) async {
+  final repository = ref.watch(healthRepositoryProvider);
+  return repository.getProfile();
+}

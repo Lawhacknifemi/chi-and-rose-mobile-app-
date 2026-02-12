@@ -1,17 +1,5 @@
 part of 'package:flutter_app/router/router.dart';
 
-const profileShellBranch = TypedStatefulShellBranch<ProfileShellBranch>(
-  routes: <TypedRoute<RouteData>>[
-    TypedGoRoute<ProfilePageRoute>(
-      path: ProfilePageRoute.path,
-    ),
-  ],
-);
-
-class ProfileShellBranch extends StatefulShellBranchData {
-  const ProfileShellBranch();
-}
-
 class ProfilePageRoute extends GoRouteData with _$ProfilePageRoute {
   const ProfilePageRoute();
 

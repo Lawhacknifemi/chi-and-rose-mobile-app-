@@ -57,6 +57,7 @@ dependencies:
   image_picker: ^1.0.7
   google_mlkit_barcode_scanning: ^0.14.2
   sign_in_with_apple: ^6.1.1
+  google_fonts: ^6.2.1
 
 
 dev_dependencies:
@@ -100,6 +101,10 @@ flutter:
     - assets/rippleloading.json
     - assets/onboarding2.json
     - assets/onboarding3.json
+    - assets/cycles.svg
+    - assets/community_icon.svg
+    - assets/scan_icon.svg
+    - assets/scan_nav_icon.svg
     # End of assets
 
 flutter_launcher_icons:

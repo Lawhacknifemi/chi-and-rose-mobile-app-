@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_app/presentation/ui/period_tracker/edit_period_page.dart';
+import 'package:flutter_app/presentation/ui/home/home_providers.dart';
 import 'package:flutter_app/composition_root/repositories/health_repository.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
@@ -12,35 +13,9 @@ class ProfilePage extends ConsumerStatefulWidget {
 }
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
-  Map<String, dynamic>? _profile;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfile();
-  }
-
-  Future<void> _loadProfile() async {
-    try {
-      final profile = await ref.read(healthRepositoryProvider).getProfile();
-      if (mounted) {
-        setState(() {
-          _profile = profile;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final userProfileAsync = ref.watch(userProfileProvider);
     return Scaffold(
       body: Stack(
         children: [
@@ -60,13 +35,21 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 children: [
                   const SizedBox(height: 24),
                   // Header
-                  _buildHeader(),
+                  userProfileAsync.when(
+                    data: (profile) => _buildHeader(profile),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (_, __) => _buildHeader(null),
+                  ),
                   const SizedBox(height: 32),
                   
                   // My Cycle Card
                   _buildSectionTitle("My Health"),
                   const SizedBox(height: 12),
-                  _buildHealthSummary(context), // Replaced Cycle Card with Health Summary
+                  userProfileAsync.when(
+                    data: (profile) => _buildHealthSummary(context, profile),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (_, __) => _buildHealthSummary(context, null),
+                  ),
                   const SizedBox(height: 32),
                   
                   // AI Personalization
@@ -105,7 +88,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(Map<String, dynamic>? profile) {
+    final name = profile?['name'] ?? ' Elena';
+    final imageUrl = profile?['image'];
+
     return Column(
       children: [
         Container(
@@ -115,17 +101,21 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             border: Border.all(color: Colors.white, width: 3),
             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 12)],
           ),
-          child: const CircleAvatar(
+          child: CircleAvatar(
             radius: 48,
-            backgroundColor: Color(0xFFF8BBD0),
-            backgroundImage: NetworkImage("https://picsum.photos/200"), // Placeholder
-            child: Icon(Icons.person, size: 48, color: Colors.white), 
+            backgroundColor: const Color(0xFFF8BBD0),
+            backgroundImage: imageUrl != null && imageUrl.toString().isNotEmpty 
+                ? NetworkImage(imageUrl) 
+                : null,
+            child: imageUrl == null || imageUrl.toString().isEmpty
+                ? const Icon(Icons.person, size: 48, color: Colors.white)
+                : null,
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
-          "My Profile",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+        Text(
+          name.toString().trim(),
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
         const SizedBox(height: 4),
         Container(
@@ -143,14 +133,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  Widget _buildHealthSummary(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final conditions = (_profile?['conditions'] as List?)?.length ?? 0;
-    final goals = (_profile?['goals'] as List?)?.length ?? 0;
-    final sensitivities = (_profile?['sensitivities'] as List?)?.length ?? 0;
+  Widget _buildHealthSummary(BuildContext context, Map<String, dynamic>? profile) {
+    final conditions = (profile?['conditions'] as List?)?.length ?? 0;
+    final goals = (profile?['goals'] as List?)?.length ?? 0;
+    final sensitivities = (profile?['sensitivities'] as List?)?.length ?? 0;
 
     return Container(
       width: double.infinity,

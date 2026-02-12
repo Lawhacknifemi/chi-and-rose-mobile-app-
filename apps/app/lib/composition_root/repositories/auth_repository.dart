@@ -241,10 +241,10 @@ class AuthRepository {
 
   Future<void> _signInWithProvider(String provider) async {
     final callbackUrl = Uri.encodeComponent('chiandrose://app/auth/callback');
-    // Point to our cleanup shim that handles the POST + Cookie logic in the browser
-    final urlString = '$_baseUrl/login/$provider?callbackURL=$callbackUrl';
+    // Point to the proxied bridge endpoint on the API server
+    final urlString = '$_baseUrl/api/auth/mobile-login/$provider?callbackURL=$callbackUrl';
     
-    debugPrint('AuthRepository: Attempting to launch URL via Shim: $urlString');
+    debugPrint('AuthRepository: Attempting to launch URL: $urlString');
     final uri = Uri.parse(urlString);
     
     try {

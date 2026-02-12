@@ -6,7 +6,6 @@ part of 'package:flutter_app/router/router.dart';
     periodTrackerShellBranch,
     scanShellBranch,
     communityShellBranch,
-    profileShellBranch,
   ],
 )
 class MainPageShellRoute extends StatefulShellRouteData {

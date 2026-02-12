@@ -36,6 +36,8 @@ class Assets {
     'assets/community.png',
   );
   static const String communitySvg = 'assets/community.svg';
+  static const String communityIcon = 'assets/community_icon.svg';
+  static const String cycles = 'assets/cycles.svg';
   static const String embryoanimation = 'assets/embryoanimation.json';
   static const String facebookIcon = 'assets/facebook_icon.svg';
   static const String frame = 'assets/frame.svg';
@@ -47,6 +49,8 @@ class Assets {
   static const String onboarding3 = 'assets/onboarding3.json';
   static const String profile = 'assets/profile.svg';
   static const String rippleloading = 'assets/rippleloading.json';
+  static const String scanIcon = 'assets/scan_icon.svg';
+  static const String scanNavIcon = 'assets/scan_nav_icon.svg';
   static const AssetGenImage splashBackground = AssetGenImage(
     'assets/splash_background.png',
   );
@@ -69,6 +73,8 @@ class Assets {
     cellIllustration,
     communityPng,
     communitySvg,
+    communityIcon,
+    cycles,
     embryoanimation,
     facebookIcon,
     frame,
@@ -78,6 +84,8 @@ class Assets {
     onboarding3,
     profile,
     rippleloading,
+    scanIcon,
+    scanNavIcon,
     splashBackground,
     vector1,
     yumemiLogo,
