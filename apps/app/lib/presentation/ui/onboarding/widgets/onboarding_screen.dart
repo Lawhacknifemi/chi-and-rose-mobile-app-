@@ -418,8 +418,11 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
       // Special handling for the third screen (Orb Portal)
       final bool isOrbPortal = widget.content.title == 'Track Your Wellness';
       
+      // V11: Remove hard clipper for Screen 3 to allow "blurred edges"
+      if (isOrbPortal) return _buildLottieContent(scale);
+
       return ClipPath(
-        clipper: isOrbPortal ? const CircleClipper() : const BlobClipper(),
+        clipper: const BlobClipper(),
         child: _buildLottieContent(scale),
       );
     }
@@ -472,14 +475,14 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
             ),
           ),
           
-          // Expansive Soft Mask Layer
+          // Expansive Soft Mask Layer (Uneven Asymmetrical Eraser)
           ShaderMask(
             shaderCallback: (rect) {
               return RadialGradient(
-                center: Alignment.center,
+                center: isOrbPortal ? const Alignment(-0.1, 0.1) : Alignment.center, // Asymmetrical shift for "uneven" look
                 radius: 1.0,
                 colors: const [Colors.black, Colors.transparent],
-                stops: isOrbPortal ? const [0.5, 1.0] : const [0.2, 0.9], // SHARP center 50%, then fade
+                stops: isOrbPortal ? const [0.2, 0.9] : const [0.2, 0.9], // Deep "blurred" zone
               ).createShader(rect);
             },
             blendMode: BlendMode.dstIn,
