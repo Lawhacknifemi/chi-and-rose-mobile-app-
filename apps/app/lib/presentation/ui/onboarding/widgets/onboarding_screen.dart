@@ -433,28 +433,30 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
             ),
           ),
           
-          // Spotlight Blending Layer (Erases edges long before they reach boundaries)
-          ShaderMask(
-            shaderCallback: (rect) {
-              return const RadialGradient(
-                center: Alignment.center,
-                radius: 1.0, // Full width spotlight
-                colors: [Colors.black, Colors.transparent],
-                stops: [0.1, 0.8], // Ultra-convergent: Starts fading from 10% center
-              ).createShader(rect);
-            },
-            blendMode: BlendMode.dstIn,
+          // Circular Physical Clip Layer (Mathematically removes the corners of the 720x480 rectangle)
+          ClipOval(
             child: ShaderMask(
               shaderCallback: (rect) {
-                return const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
-                  stops: [0.0, 0.2, 0.8, 1.0], // Ultra-soft vertical "pill" mask
+                return const RadialGradient(
+                  center: Alignment.center,
+                  radius: 0.8,
+                  colors: [Colors.black, Colors.transparent],
+                  stops: [0.0, 0.7], // Deep fade: Visibility only in the very center
                 ).createShader(rect);
               },
               blendMode: BlendMode.dstIn,
-              child: _buildLottieLayer(scale),
+              child: ShaderMask(
+                shaderCallback: (rect) {
+                  return const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+                    stops: [0.0, 0.3, 0.7, 1.0], // Ultra-soft vertical "pill" mask for image sequence
+                  ).createShader(rect);
+                },
+                blendMode: BlendMode.dstIn,
+                child: _buildLottieLayer(scale),
+              ),
             ),
           ),
           
@@ -475,17 +477,18 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
     return AnimatedBuilder(
       animation: _breathingController,
       builder: (context, lottieChild) {
-        // Continuous Dancing (Lissajous Orbit) - DISABLED for screen 3 to prevent edge escape
-        final bool shouldDance = widget.content.iconBottom != null;
+        // Continuous Dancing (Lissajous Orbit) - RE-ENABLED subtler version for V7
+        final bool isSpecial = widget.content.iconBottom == null;
         
         final double t = _breathingController.value * 4 * math.pi;
-        final double danceX = shouldDance ? 10 * math.sin(t) : 0.0;
-        final double danceY = shouldDance ? 10 * math.cos(t * 1.5) : 0.0;
+        // 5px max move for screen 3 vs 10px for others
+        final double danceX = isSpecial ? 5 * math.sin(t) : 10 * math.sin(t);
+        final double danceY = isSpecial ? 5 * math.cos(t * 1.5) : 10 * math.cos(t * 1.5);
 
         return Transform.translate(
-          offset: Offset(danceX, danceY + (shouldDance ? 15 : 0)),
+          offset: Offset(danceX, danceY + (isSpecial ? 0 : 15)),
           child: Transform.scale(
-            scale: shouldDance ? 1.1 : 1.0, // Reduced scale for screen 3 to keep edges away
+            scale: isSpecial ? 1.05 : 1.1, // Optimized scale to stay inside ClipOval
             child: lottieChild,
           ),
         );
@@ -494,7 +497,7 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
         widget.content.lottieAsset!,
         width: 312,
         height: 312,
-        fit: BoxFit.contain,
+        fit: widget.content.iconBottom == null ? BoxFit.fitWidth : BoxFit.contain,
       ),
     );
   }
