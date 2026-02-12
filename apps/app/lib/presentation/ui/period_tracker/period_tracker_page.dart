@@ -277,7 +277,7 @@ class FlowTrackerPage extends ConsumerWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF1E1E1E) : (isToday ? const Color(0xFFE8B6CC).withOpacity(0.5) : Colors.transparent),
+            color: isSelected ? const Color(0xFFC06C84) : (isToday ? const Color(0xFFE8B6CC).withOpacity(0.5) : Colors.transparent),
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,
@@ -300,7 +300,7 @@ class FlowTrackerPage extends ConsumerWidget {
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check_circle, color: Colors.black, size: 16),
+              child: const Icon(Icons.check_circle, color: Color(0xFFC06C84), size: 16),
             ),
           ),
       ],
