@@ -416,7 +416,7 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
         children: [
           // Layer: Floor Glow (Anchors the animation to the 'ground')
           Opacity(
-            opacity: 0.15 * scale, // Even softer floor glow
+            opacity: 0.15 * scale,
             child: Container(
               width: 300, 
               height: 40,
@@ -425,7 +425,7 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
                 boxShadow: [
                   BoxShadow(
                     color: (widget.content.lottieBlobColor ?? const Color(0xFFC06C84)).withOpacity(0.3),
-                    blurRadius: 80,
+                    blurRadius: 100, // Even more diffuse
                     spreadRadius: 20,
                   ),
                 ],
@@ -433,14 +433,14 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
             ),
           ),
           
-          // Refined Blending Layer (Keeps center sharp, hides extreme edges)
+          // Spotlight Blending Layer (Erases edges long before they reach boundaries)
           ShaderMask(
             shaderCallback: (rect) {
               return const RadialGradient(
                 center: Alignment.center,
-                radius: 0.85,
+                radius: 1.0, // Full width spotlight
                 colors: [Colors.black, Colors.transparent],
-                stops: [0.93, 1.0], // ONLY fade at the very edge of the radius
+                stops: [0.4, 0.9], // Start fading at 40% center, gone by 90%
               ).createShader(rect);
             },
             blendMode: BlendMode.dstIn,
@@ -450,7 +450,7 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
-                  stops: [0.0, 0.05, 0.95, 1.0], // Sharp vertical transition to hide scanline edges
+                  stops: [0.0, 0.2, 0.8, 1.0], // Ultra-soft vertical "pill" mask
                 ).createShader(rect);
               },
               blendMode: BlendMode.dstIn,
