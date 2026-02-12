@@ -10,7 +10,8 @@ class DiscoverPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final discoverAsync = ref.watch(discoverFeedProvider);
+    final filteredDiscoverAsync = ref.watch(filteredDiscoverFeedProvider);
+    final searchQuery = ref.watch(searchQueryProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -49,10 +50,13 @@ class DiscoverPage extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.search, color: Colors.black, size: 28),
-                          onPressed: () {},
-                        ),
+                        if (searchQuery.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.black),
+                            onPressed: () {
+                              ref.read(searchQueryProvider.notifier).state = "";
+                            },
+                          ),
                       ],
                     ),
                   ),
@@ -63,10 +67,21 @@ class DiscoverPage extends ConsumerWidget {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                     child: TextField(
+                      onChanged: (value) {
+                        ref.read(searchQueryProvider.notifier).state = value;
+                      },
                       decoration: InputDecoration(
                         hintText: 'Search product or brand',
                         hintStyle: const TextStyle(color: Colors.grey),
                         prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                        suffixIcon: searchQuery.isNotEmpty 
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, color: Colors.grey),
+                              onPressed: () {
+                                ref.read(searchQueryProvider.notifier).state = "";
+                              },
+                            )
+                          : null,
                         filled: true,
                         fillColor: Colors.black.withOpacity(0.05),
                         border: OutlineInputBorder(
@@ -79,17 +94,55 @@ class DiscoverPage extends ConsumerWidget {
                   ),
                 ),
 
-                // Sections
-                discoverAsync.when(
+                // Sections or Search Results
+                filteredDiscoverAsync.when(
                   data: (recs) {
                     if (recs.isEmpty) {
-                      return const SliverFillRemaining(
+                      return SliverFillRemaining(
                         child: Center(
-                          child: Text("Scan products to get recommendations!", style: TextStyle(color: Colors.grey)),
+                          child: Text(
+                            searchQuery.isEmpty 
+                              ? "Scan products to get recommendations!" 
+                              : "No products found for \"$searchQuery\"", 
+                            style: const TextStyle(color: Colors.grey)
+                          ),
                         ),
                       );
                     }
                     
+                    if (searchQuery.isNotEmpty) {
+                      // Unified Search Results View
+                      return SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        sliver: SliverGrid(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            childAspectRatio: 0.7,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final p = recs[index];
+                              return GestureDetector(
+                                onTap: () => _onProductTap(context, p),
+                                child: VerticalProductCard(
+                                  imagePath: p['imageUrl'] ?? 'assets/app_icon.png',
+                                  brand: p['brand'] ?? 'Unknown',
+                                  name: p['productName'] ?? 'Unknown Product',
+                                  score: 90,
+                                  isSafe: true,
+                                  safetyLevel: 'Safe',
+                                  width: double.infinity,
+                                ),
+                              );
+                            },
+                            childCount: recs.length,
+                          ),
+                        ),
+                      );
+                    }
+
                     // Split recommendations into groups for the 3 sections shown in UI
                     final topPicks = recs.take(3).toList();
                     final related = recs.skip(3).take(3).toList();
@@ -134,6 +187,16 @@ class DiscoverPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  void _onProductTap(BuildContext context, dynamic p) {
+    if (p['barcode'] != null) {
+      context.push('/product-details', extra: {
+        'product': p,
+        'analysis': {'score': 90, 'safetyLevel': 'Safe'},
+        'barcode': p['barcode'],
+      });
+    }
   }
 
   Widget _buildSection(BuildContext context, String title, String subtitle, List<dynamic> products) {
