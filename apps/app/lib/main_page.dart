@@ -25,33 +25,44 @@ class MainPage extends ConsumerWidget {
           navigationShell,
           // Floating Notched Navigation Bar with Shadow
           Positioned(
-            left: 24,
-            right: 24,
-            bottom: 30,
-            child: Material(
-              color: Colors.transparent,
-              elevation: 12,
-              shadowColor: Colors.black.withOpacity(0.25),
-              shape: NotchedRoundedShape(radius: 35), // Custom shape for shadow
-              child: Container(
-                height: 70, // Reduced height
-                decoration: ShapeDecoration(
-                  color: Colors.white,
-                  shape: NotchedRoundedShape(radius: 35),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      Expanded(child: _buildNavItem(context, 0, Icons.home_outlined, 'HOME')),
-                      Expanded(child: _buildNavItem(context, 1, 'assets/cycles.svg', 'CYCLE')),
-                      
-                      // Precise space for the notch
-                      const SizedBox(width: 70),
-                      
-                      Expanded(child: _buildNavItem(context, -1, Icons.smart_toy_outlined, 'AI MENTOR')),
-                      Expanded(child: _buildNavItem(context, 3, 'assets/community_icon.svg', 'COMMUNITY')),
+            left: 20,
+            right: 20,
+            bottom: 24,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(35),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(35),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
                     ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        Expanded(child: _buildNavItem(context, 0, Icons.home_rounded, 'HOME')),
+                        Expanded(child: _buildNavItem(context, 1, 'assets/cycles.svg', 'CYCLE')),
+                        
+                        // Precise space for the FAB
+                        const SizedBox(width: 70),
+                        
+                        Expanded(child: _buildNavItem(context, -1, Icons.auto_awesome_rounded, 'AI MENTOR')),
+                        Expanded(child: _buildNavItem(context, 3, 'assets/community_icon.svg', 'COMMUNITY')),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -59,7 +70,7 @@ class MainPage extends ConsumerWidget {
           ),
           // Protruding Scan FAB
           Positioned(
-            bottom: 62, // Positioned in the notch
+            bottom: 54, // Positioned slightly higher for overlap
             left: MediaQuery.of(context).size.width / 2 - 35,
             child: GestureDetector(
               onTap: () => _onTap(context, 2),
@@ -69,10 +80,9 @@ class MainPage extends ConsumerWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   boxShadow: [
-                    // Subtle outer glow
                     BoxShadow(
-                      color: const Color(0xFF5D1A32).withOpacity(0.3),
-                      blurRadius: 20,
+                      color: const Color(0xFFC06C84).withOpacity(0.35),
+                      blurRadius: 25,
                       spreadRadius: 2,
                     ),
                   ],
@@ -91,7 +101,9 @@ class MainPage extends ConsumerWidget {
 
   Widget _buildNavItem(BuildContext context, int index, dynamic iconOrPath, String label) {
     final isSelected = index >= 0 && navigationShell.currentIndex == index;
-    final color = isSelected ? const Color(0xFF333333) : const Color(0xFFB0BEC5);
+    final activeColor = const Color(0xFFC06C84); // Brand Burgundy
+    final inactiveColor = const Color(0xFF9E9E9E);
+    final color = isSelected ? activeColor : inactiveColor;
 
     return GestureDetector(
       onTap: () => _onTap(context, index),
@@ -100,7 +112,25 @@ class MainPage extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildIcon(iconOrPath, color),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              if (isSelected)
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 200),
+                  builder: (context, value, child) => Container(
+                    width: 40 * value,
+                    height: 32 * value,
+                    decoration: BoxDecoration(
+                      color: activeColor.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              _buildIcon(iconOrPath, color),
+            ],
+          ),
           const SizedBox(height: 4),
           Text(
             label,
@@ -108,7 +138,7 @@ class MainPage extends ConsumerWidget {
               fontSize: 9,
               fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
               color: color,
-              letterSpacing: 0.5,
+              letterSpacing: 0.8,
             ),
             textAlign: TextAlign.center,
           ),
