@@ -119,7 +119,7 @@ class DiscoverPage extends ConsumerWidget {
                             crossAxisCount: 2,
                             mainAxisSpacing: 16,
                             crossAxisSpacing: 16,
-                            childAspectRatio: 0.7,
+                            childAspectRatio: 0.6,
                           ),
                           delegate: SliverChildBuilderDelegate(
                             (context, index) {
