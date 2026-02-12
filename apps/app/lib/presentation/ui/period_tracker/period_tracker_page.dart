@@ -317,19 +317,8 @@ class FlowTrackerPage extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Back Button
-          GestureDetector(
-            onTap: () => context.pop(),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFFC06C84), size: 20),
-            ),
-          ),
+          // Spacing for alignment (Back button removed)
+          const SizedBox(width: 44),
           
           // Title
           const Text(
