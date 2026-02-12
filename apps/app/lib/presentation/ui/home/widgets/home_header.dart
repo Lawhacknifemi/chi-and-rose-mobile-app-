@@ -34,9 +34,10 @@ class HomeHeader extends ConsumerWidget {
                   const SizedBox(height: 4),
                   userProfileAsync.when(
                     data: (profile) {
-                      final name = profile?['name'] ?? ' Elena'; // Space added to match original Bonjour greeting spacing if needed, but Elena was Elena.
+                      final fullName = profile?['name']?.toString() ?? 'Elena';
+                      final firstName = fullName.split(' ').first;
                       return Text(
-                        'Bonjour, ${name.toString().trim()}',
+                        'Bonjour, ${firstName.trim()}',
                         style: GoogleFonts.lora(
                           fontSize: 28,
                           fontWeight: FontWeight.w500,
