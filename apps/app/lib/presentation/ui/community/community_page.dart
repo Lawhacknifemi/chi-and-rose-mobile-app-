@@ -105,6 +105,7 @@ class _CommunityPageState extends ConsumerState<CommunityPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => const _CreatePostSheet(),
     );
@@ -113,6 +114,7 @@ class _CommunityPageState extends ConsumerState<CommunityPage> {
   void _showCreateOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => SafeArea(
         child: Column(
@@ -145,6 +147,7 @@ class _CommunityPageState extends ConsumerState<CommunityPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => const _CreateGroupSheet(),
     );
