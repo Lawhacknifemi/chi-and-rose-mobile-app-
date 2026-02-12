@@ -412,15 +412,35 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
   Widget _buildLottieContent(double scale) {
     if (widget.content.useAdvancedBlending) {
       return Stack(
+        alignment: Alignment.center,
         children: [
+          // Layer: Floor Glow (Anchors the animation to the 'ground')
+          Opacity(
+            opacity: 0.3 * scale,
+            child: Container(
+              width: 200,
+              height: 40,
+              margin: const EdgeInsets.only(top: 240), // Position at bottom
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: (widget.content.lottieBlobColor ?? const Color(0xFFC06C84)).withOpacity(0.6),
+                    blurRadius: 40,
+                    spreadRadius: 10,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
           // Base Animation Layer with Ghost Blending (Vignettes + Blur)
           ShaderMask(
             shaderCallback: (rect) {
               return const RadialGradient(
                 center: Alignment.center,
-                radius: 0.6,
+                radius: 0.8, // Larger radius for more sharpness
                 colors: [Colors.black, Colors.transparent],
-                stops: [0.1, 1.0],
+                stops: [0.75, 1.0], // Sharper transition at the very edge
               ).createShader(rect);
             },
             blendMode: BlendMode.dstIn,
@@ -430,7 +450,7 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
-                  stops: [0.0, 0.15, 0.85, 1.0],
+                  stops: [0.0, 0.05, 0.95, 1.0], // Sharp vertical transition
                 ).createShader(rect);
               },
               blendMode: BlendMode.dstIn,
