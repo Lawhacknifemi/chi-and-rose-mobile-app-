@@ -56,6 +56,6 @@ const onboardingScreens = [
     lottieAsset: 'assets/onboarding_screen3.json',
     lottieBlobColor: Color(0xFFEECADB), // Soft Pink
     secondaryLottieBlobColor: Color(0xFFA0C4FF), // Light Blue (Left)
-    useAdvancedBlending: true,
+    useAdvancedBlending: false,
   ),
 ];
