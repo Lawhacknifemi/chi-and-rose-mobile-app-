@@ -479,7 +479,7 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
                 center: Alignment.center,
                 radius: 1.0,
                 colors: const [Colors.black, Colors.transparent],
-                stops: isOrbPortal ? const [0.0, 0.85] : const [0.2, 0.9],
+                stops: isOrbPortal ? const [0.5, 1.0] : const [0.2, 0.9], // SHARP center 50%, then fade
               ).createShader(rect);
             },
             blendMode: BlendMode.dstIn,
@@ -524,7 +524,7 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
         return Transform.translate(
           offset: Offset(danceX, danceY + (isOrbPortal ? 0 : 15)),
           child: Transform.scale(
-            scale: isOrbPortal ? 0.9 : 1.1, // 90% scale for Orb to stay safely inside portal
+            scale: isOrbPortal ? 0.9 : 1.1, // Full Cover needs slightly less scale to fit well
             child: lottieChild,
           ),
         );
@@ -533,7 +533,7 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
         widget.content.lottieAsset!,
         width: 312,
         height: 312,
-        fit: widget.content.title == 'Track Your Wellness' ? BoxFit.fitWidth : BoxFit.contain,
+        fit: widget.content.title == 'Track Your Wellness' ? BoxFit.cover : BoxFit.contain, // COVER: Hides straight edges
       ),
     );
   }
