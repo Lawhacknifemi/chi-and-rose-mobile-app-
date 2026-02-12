@@ -127,12 +127,12 @@ class DiscoverPage extends ConsumerWidget {
                               return GestureDetector(
                                 onTap: () => _onProductTap(context, p),
                                 child: VerticalProductCard(
-                                  imagePath: p['imageUrl'] ?? 'assets/app_icon.png',
-                                  brand: p['brand'] ?? 'Unknown',
-                                  name: p['productName'] ?? 'Unknown Product',
-                                  score: 90,
-                                  isSafe: true,
-                                  safetyLevel: 'Safe',
+                                  imagePath: p['imageUrl']?.toString() ?? 'assets/images/article_1.png',
+                                  brand: p['brand']?.toString() ?? 'Unknown',
+                                  name: p['productName']?.toString() ?? 'Unnamed Product',
+                                  score: (p['overallSafetyScore'] ?? p['score'] ?? 0) as int,
+                                  isSafe: (p['safetyLevel']?.toString() == 'Good' || p['safetyLevel']?.toString() == 'Safe'),
+                                  safetyLevel: p['safetyLevel']?.toString() ?? 'Caution',
                                   width: double.infinity,
                                 ),
                               );
