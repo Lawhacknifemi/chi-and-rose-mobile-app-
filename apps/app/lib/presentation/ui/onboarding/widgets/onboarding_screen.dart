@@ -416,16 +416,16 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
         children: [
           // Layer: Floor Glow (Anchors the animation to the 'ground')
           Opacity(
-            opacity: 0.2 * scale, // Slightly softer floor glow
+            opacity: 0.15 * scale, // Even softer floor glow
             child: Container(
-              width: 250, // Wider for more diffusion
-              height: 60,
+              width: 300, 
+              height: 40,
               margin: const EdgeInsets.only(top: 240),
               decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
-                    color: (widget.content.lottieBlobColor ?? const Color(0xFFC06C84)).withOpacity(0.4),
-                    blurRadius: 60,
+                    color: (widget.content.lottieBlobColor ?? const Color(0xFFC06C84)).withOpacity(0.3),
+                    blurRadius: 80,
                     spreadRadius: 20,
                   ),
                 ],
@@ -433,14 +433,14 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
             ),
           ),
           
-          // Ultra-Aggressive Blending Layer (Erases the "video box" edges)
+          // Refined Blending Layer (Keeps center sharp, hides extreme edges)
           ShaderMask(
             shaderCallback: (rect) {
               return const RadialGradient(
                 center: Alignment.center,
-                radius: 0.9,
+                radius: 0.85,
                 colors: [Colors.black, Colors.transparent],
-                stops: [0.3, 1.0], // Aggressive radial fade starts much earlier
+                stops: [0.93, 1.0], // ONLY fade at the very edge of the radius
               ).createShader(rect);
             },
             blendMode: BlendMode.dstIn,
@@ -450,18 +450,11 @@ extension _OnboardingScreenStateExtensions on _OnboardingScreenState {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
-                  stops: [0.0, 0.2, 0.8, 1.0], // Soft vertical fade to hide top/bottom edges
+                  stops: [0.0, 0.05, 0.95, 1.0], // Sharp vertical transition to hide scanline edges
                 ).createShader(rect);
               },
               blendMode: BlendMode.dstIn,
-              child: ShaderMask(
-                // Additive Blending to knock out dark backgrounds from the image sequence
-                shaderCallback: (rect) => LinearGradient(
-                  colors: [Colors.white.withOpacity(0.9), Colors.white.withOpacity(0.9)],
-                ).createShader(rect),
-                blendMode: BlendMode.screen,
-                child: _buildLottieLayer(scale),
-              ),
+              child: _buildLottieLayer(scale),
             ),
           ),
           
